@@ -33,11 +33,11 @@ namespace Mud
 
         #region Selectable Values
 
-        public static string[] SecondsBetweenUpdates = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" },
-                                ModifierKeyStrings = { "None", "Shift", "Control", "Alt" },
-                                TargetingModes = { "None", "Assist Tank", "Being Tanked", "Nearest Enemy" },
-                                MovementModes = { "Combat", "Tank", "Follow" },
-                                SupportedNavigationProviders = { "Null", "(EU/US only) Service" };
+        internal static readonly string[] SecondsBetweenUpdates = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
+        internal static readonly string[] ModifierKeyStrings = { "None", "Shift", "Control", "Alt" };
+        internal static readonly string[] TargetingModes = { "None", "Assist Tank", "Being Tanked", "Nearest Enemy" };
+        internal static readonly string[] MovementModes = { "Combat", "Tank", "Follow" };
+        internal static readonly string[] SupportedNavigationProviders = { "Null", "Service Navigation" };
 
         #endregion Selectable Values
 
@@ -45,35 +45,39 @@ namespace Mud
 
         public static void UpdateNavigationProvider()
         {
-            switch (SupportedNavigationProviders[Settings.NavigationProvider])
+            switch (SupportedNavigationProviders[MudSettings.Instance.NavigationProvider])
             {
                 case "Null":
                     if (!(Navigator.NavigationProvider is NullProvider))
                     {
-                        ServiceNavigationProvider g = (Navigator.NavigationProvider as ServiceNavigationProvider);
-                        if (g != null) g.Dispose();
+                        if (Navigator.NavigationProvider is ServiceNavigationProvider g)
+                            g.Dispose();
+
                         Navigator.NavigationProvider = new NullProvider();
                         Logging.Write(Colors.Brown, @"[MudAssist] ==> Using Null Navigator");
                     }
                     break;
 
-                case "(EU/US only) Service":
+                case "Service Navigation":
                     if (!(Navigator.NavigationProvider is ServiceNavigationProvider))
                     {
                         Navigator.NavigationProvider = new ServiceNavigationProvider();
                         Logging.Write(Colors.Brown, @"[MudAssist] ==> Using Service Navigator");
                     }
                     break;
-
-                default: break;
             }
         }
 
         public bool TreeTick()
         {
-            if (Core.Player.CurrentTarget != null && Core.Player.CurrentTarget.Name != null) LastTargetName = Core.Player.CurrentTarget.Name;
-            if (JobHelper.IsMeleeDPS(Core.Player) || JobHelper.IsTank(Core.Player)) WaypointManager.TrackMelee();
-            else if (JobHelper.IsHealer(Core.Player) || JobHelper.IsRangedDPS(Core.Player)) WaypointManager.TrackRanged();
+            if (Core.Player.CurrentTarget != null && Core.Player.CurrentTarget.Name != null)
+                LastTargetName = Core.Player.CurrentTarget.Name;
+
+            if (JobHelper.IsMeleeDPS(Core.Player) || JobHelper.IsTank(Core.Player))
+                WaypointManager.TrackMelee();
+            else if (JobHelper.IsHealer(Core.Player) || JobHelper.IsRangedDPS(Core.Player))
+                WaypointManager.TrackRanged();
+
             SettingsForm.UpdateStatus();
             return true;
         }
@@ -82,7 +86,6 @@ namespace Mud
 
         #region Overrides
 
-        public static MudSettings Settings = MudSettings.Instance;
         private Composite _root;
         private SettingsForm settings;
         public override string Name => "MudAssist";
@@ -90,17 +93,20 @@ namespace Mud
         public override bool RequiresProfile => false;
 
         public override Composite Root => _root ?? (_root =
-                    new Decorator(
+                    new Decorator
+                    (
                         req => TreeTick()
-                            && !Settings.Paused
+                            && !MudSettings.Instance.Paused
                             && Core.Player.IsAlive
                             && !Core.Player.IsCasting
                             && (!MovementManager.IsMoving
-                            || Settings.ExecuteWhileMoving),
-                        new PrioritySelector(
+                            || MudSettings.Instance.ExecuteWhileMoving),
+                        new PrioritySelector
+                        (
                             // Auto Skip Cutscenes
-                            new Decorator(
-                                req => Settings.SkipCustscenes
+                            new Decorator
+                            (
+                                req => MudSettings.Instance.SkipCutscenes
                                     && QuestLogManager.InCutscene,
                                 new Action(a =>
                                 {
@@ -109,172 +115,243 @@ namespace Mud
                                     {
                                         if (SelectString.IsOpen) SelectString.ClickSlot(0);
                                     }
-                                })),
+                                })
+                            ),
                             // Auto Talk to NPCs and/or Auto Accept/Complete Quest
-                            new Decorator(
-                                req => Settings.TalkToNPC
-                                    || (Settings.AcceptQuests
-                                    || Settings.CompleteQuests),
-                                new PrioritySelector(
+                            new Decorator
+                            (
+                                req => MudSettings.Instance.TalkToNpc
+                                       || MudSettings.Instance.AcceptQuests
+                                       || MudSettings.Instance.CompleteQuests,
+                                new PrioritySelector
+                                (
                                     // Auto Talk to NPCs
-                                    new Decorator(
-                                        req => Settings.TalkToNPC
-                                            && Talk.DialogOpen,
+                                    new Decorator
+                                    (
+                                        req => MudSettings.Instance.TalkToNpc && Talk.DialogOpen,
                                         new Action(a =>
                                         {
                                             Talk.Next();
-                                        })),
+                                        })
+                                    ),
                                     // Auto Accept Quests
-                                    new Decorator(
-                                        req => Settings.AcceptQuests
-                                            && JournalAccept.IsOpen,
+                                    new Decorator
+                                    (
+                                        req => MudSettings.Instance.AcceptQuests && JournalAccept.IsOpen,
                                         new Action(a =>
                                         {
                                             JournalAccept.Accept();
-                                        })),
+                                        })
+                                    ),
                                     // Auto Complete Quest
-                                    new Decorator(
-                                        req => Settings.CompleteQuests
-                                            && JournalResult.IsOpen,
+                                    new Decorator
+                                    (
+                                        req => MudSettings.Instance.CompleteQuests && JournalResult.IsOpen,
                                         new Action(a =>
                                         {
                                             // Need to find a way to auto complete it...
                                             //JournalResult.Complete();
-                                        })))),
+                                        })
+                                    )
+                                )
+                            ),
                             // Auto Sprint
-                            new Decorator(
+                            new Decorator
+                            (
                                 req => ActionManager.IsSprintReady
-                                    && MovementManager.IsMoving
-                                    && !Core.Player.IsMounted
-                                    && (Settings.SprintOutOfCombat
-                                    || Settings.SprintInInstance
-                                    || Settings.SprintInCombat),
-                                new PrioritySelector(
+                                       && MovementManager.IsMoving
+                                       && !Core.Player.IsMounted
+                                       && (   MudSettings.Instance.SprintOutOfCombat
+                                           || MudSettings.Instance.SprintInInstance
+                                           || MudSettings.Instance.SprintInCombat),
+                                new PrioritySelector
+                                (
                                     // Auto Sprint out of combat
-                                    new Decorator(
-                                        req => Settings.SprintOutOfCombat,
+                                    new Decorator
+                                    (
+                                        req => MudSettings.Instance.SprintOutOfCombat,
                                         new Action(a =>
                                         {
-                                            if (!Core.Player.InCombat && !DutyManager.InInstance) ActionManager.Sprint();
-                                        })),
+                                            if (!Core.Player.InCombat && !DutyManager.InInstance)
+                                                ActionManager.Sprint();
+                                        })
+                                    ),
                                     // Auto Sprint in instance
-                                    new Decorator(
-                                        req => Settings.SprintInInstance,
+                                    new Decorator
+                                    (
+                                        req => MudSettings.Instance.SprintInInstance,
                                         new Action(a =>
                                         {
-                                            if (!Core.Player.InCombat && DutyManager.InInstance) ActionManager.Sprint();
-                                        })),
+                                            if (!Core.Player.InCombat && DutyManager.InInstance)
+                                                ActionManager.Sprint();
+                                        })
+                                    ),
                                     // Auto Sprint in combat
-                                    new Decorator(
-                                        req => Settings.SprintInCombat,
+                                    new Decorator
+                                    (
+                                        req => MudSettings.Instance.SprintInCombat,
                                         new Action(a =>
                                         {
-                                            if (Core.Player.InCombat) ActionManager.Sprint();
-                                        })))),
+                                            if (Core.Player.InCombat)
+                                                ActionManager.Sprint();
+                                        })
+                                    )
+                                )
+                            ),
                             // Resting
-                            new Decorator(
+                            new Decorator
+                            (
                                 req => RoutineManager.Current.RestBehavior != null
-                                    && !Core.Player.InCombat
-                                    && Settings.Rest
-                                    && !Core.Player.IsMounted
-                                    && ActionManager.IsSprintReady,
+                                       && !Core.Player.InCombat
+                                       && MudSettings.Instance.Rest
+                                       && !Core.Player.IsMounted
+                                       && ActionManager.IsSprintReady,
                                 RoutineManager.Current.RestBehavior),
                             // Out Of Combat Healing
-                            new Decorator(
+                            new Decorator
+                            (
                                 req => RoutineManager.Current.HealBehavior != null
-                                    && (Core.Player.InCombat
-                                    || Settings.HealOutOfCombat)
-                                    && Settings.Heal
-                                    && !Core.Player.IsMounted,
+                                       && (Core.Player.InCombat || MudSettings.Instance.HealOutOfCombat)
+                                       && !Core.Player.IsMounted
+                                       && MudSettings.Instance.Heal,
                                 RoutineManager.Current.HealBehavior),
                             // Pre-Combat Buffs
-                            new Decorator(
+                            new Decorator
+                            (
                                 req => RoutineManager.Current.PreCombatBuffBehavior != null
-                                    && !Core.Player.InCombat
-                                    && Settings.PreCombatBuff
-                                    && !Core.Player.IsMounted,
+                                       && !Core.Player.InCombat
+                                       && !Core.Player.IsMounted
+                                       && MudSettings.Instance.PreCombatBuff,
                                 RoutineManager.Current.PreCombatBuffBehavior),
                             // Stop Moving If Moving & In Range of Target
-                            new Decorator(
-                                req => Settings.AutoMove
+                            new Decorator
+                            (
+                                req => MudSettings.Instance.AutoMove
                                     && WaypointManager.IsNavigating
                                     && WaypointManager.Next == null,
-                                new Action(a => { WaypointManager.StopNavigating(); })),
+                                new Action(a =>
+                                {
+                                    WaypointManager.StopNavigating();
+                                })
+                            ),
                             // Move to Target If Not in Range & Not on the Move
-                            new Decorator(
-                                req => Settings.AutoMove
+                            new Decorator
+                            (
+                                req => MudSettings.Instance.AutoMove
                                     && !Core.Player.IsCasting
                                     && WaypointManager.Next != null,
                                 new Action(a =>
                                 {
-                                    if (JobHelper.IsRangedDPS(Core.Player) || JobHelper.IsHealer(Core.Player)) WaypointManager.MoveToNextRanged();
-                                    else if (JobHelper.IsMeleeDPS(Core.Player) || JobHelper.IsTank(Core.Player)) WaypointManager.MoveToNextMelee();
-                                })),
+                                    if (JobHelper.IsRangedDPS(Core.Player) || JobHelper.IsHealer(Core.Player))
+                                        WaypointManager.MoveToNextRanged();
+                                    else if (JobHelper.IsMeleeDPS(Core.Player) || JobHelper.IsTank(Core.Player))
+                                        WaypointManager.MoveToNextMelee();
+                                })
+                            ),
                             // Find Suitable Target
-                            new Decorator(
-                                req => (!Core.Player.HasTarget
-                                    || !Core.Player.CurrentTarget.CanAttack),
-                                new PrioritySelector(
+                            new Decorator
+                            (
+                                req => !Core.Player.HasTarget
+                                       || !Core.Player.CurrentTarget.CanAttack,
+                                new PrioritySelector
+                                (
                                     // Find Suitable Target -- Lowest HP Tanked
-                                    new Decorator(
-                                        req => (TargetingModes[Settings.TargetingMode].Equals("Being Tanked")
-                                            && GetVisiblePartyMembers().Where(pm => JobHelper.IsTank(pm)).Count() > 0),
+                                    new Decorator
+                                    (
+                                        req => TargetingModes[MudSettings.Instance.TargetingMode].Equals("Being Tanked")
+                                               && GetVisiblePartyMembers().Any(JobHelper.IsTank),
                                         new Action(a =>
                                         {
-                                            IEnumerable<GameObject> objs = GameObjectManager.GameObjects.Where(o => IsValidEnemy(o)
-                                                                                                                 && (o as Character).InCombat
-                                                                                                                 && (o as Character).CurrentTargetId == GetPartyTank().ObjectId);
-                                            if (objs != null && objs.Count() > 0) objs.OrderBy(o => o.CurrentHealthPercent).First().Target();
-                                        })),
+                                            IEnumerable<GameObject> objs = GameObjectManager.GameObjects
+                                                .Where(o => IsValidEnemy(o)
+                                                            && (o as Character).InCombat
+                                                            && (o as Character).CurrentTargetId == GetPartyTank().ObjectId);
+                                            if (objs != null && objs.Any())
+                                                objs.OrderBy(o => o.CurrentHealthPercent)
+                                                    .First()
+                                                    .Target();
+                                        })
+                                    ),
                                     // Find Suitable Target -- Assist Tank
-                                    new Decorator(
-                                        req => (TargetingModes[Settings.TargetingMode].Equals("Assist Tank")
-                                            && GetVisiblePartyMembers().Where(pm => JobHelper.IsTank(pm)).Count() > 0),
-                                        new Action(a => Assist(GetVisiblePartyMembers().Where(pm => JobHelper.IsTank(pm)).First()))),
+                                    new Decorator
+                                    (
+                                        req => TargetingModes[MudSettings.Instance.TargetingMode].Equals("Assist Tank")
+                                               && GetVisiblePartyMembers().Any(JobHelper.IsTank),
+                                        new Action(a => Assist(GetVisiblePartyMembers()
+                                            .First(JobHelper.IsTank))
+                                        )
+                                    ),
                                     // Find Suitable Target -- Nearest Enemy
-                                    new Decorator(
-                                        req => TargetingModes[Settings.TargetingMode].Equals("Nearest Enemy"),
+                                    new Decorator
+                                    (
+                                        req => TargetingModes[MudSettings.Instance.TargetingMode].Equals("Nearest Enemy"),
                                         new Action(a =>
                                         {
-                                            GameObject target = GetClosestEnemyByName(Settings.MobsToTarget);
-                                            if (target != null) target.Target();
-                                        })))),
+                                            GameObject target = GetClosestEnemyByName(MudSettings.Instance.MobsToTarget);
+                                            if (target != null)
+                                                target.Target();
+                                        })
+                                    )
+                                )
+                            ),
                             // Executed Out of Combat
-                            new Decorator(
+                            new Decorator
+                            (
                                 req => !Core.Player.InCombat
-                                    && (!PartyManager.IsInParty || JobHelper.IsTank(Core.Player)),
-                                new PrioritySelector(
+                                       && (!PartyManager.IsInParty || JobHelper.IsTank(Core.Player)),
+                                new PrioritySelector
+                                (
                                     // Pull Buff Behavior
-                                    new Decorator(
+                                    new Decorator
+                                    (
                                         req => RoutineManager.Current.PullBuffBehavior != null
-                                            && IsValidEnemy(Core.Player.CurrentTarget)
-                                            && Settings.PullBuff,
-                                        RoutineManager.Current.PullBuffBehavior),
+                                               && IsValidEnemy(Core.Player.CurrentTarget)
+                                               && MudSettings.Instance.PullBuff,
+                                        RoutineManager.Current.PullBuffBehavior
+                                    ),
                                     // Pull Behavior
-                                    new Decorator(
+                                    new Decorator
+                                    (
                                         req => IsValidEnemy(Core.Player.CurrentTarget)
-                                            && Settings.Pull
-                                            && Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location)
-                                            <= (RoutineManager.Current.PullRange + Core.Player.CurrentTarget.CombatReach + (float)Settings.TargetRangeMelee),
-                                        new PrioritySelector(RoutineManager.Current.PullBehavior, RoutineManager.Current.CombatBehavior)))),
+                                               && MudSettings.Instance.Pull
+                                               && Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location)
+                                               <= RoutineManager.Current.PullRange
+                                                   + Core.Player.CurrentTarget.CombatReach
+                                                   + (float)MudSettings.Instance.TargetRangeMelee,
+                                        new PrioritySelector(RoutineManager.Current.PullBehavior, RoutineManager.Current.CombatBehavior)
+                                    )
+                                )
+                            ),
                             // Executed In Combat
-                            new Decorator(
+                            new Decorator
+                            (
                                 req => !Core.Player.IsMounted
-                                    && InCombat,
-                                new PrioritySelector(
+                                       && InCombat,
+                                new PrioritySelector
+                                (
                                     // Combat Buffs
-                                    new Decorator(
+                                    new Decorator
+                                    (
                                         req => RoutineManager.Current.CombatBuffBehavior != null
-                                            && Settings.CombatBuff,
-                                        RoutineManager.Current.CombatBuffBehavior),
+                                               && MudSettings.Instance.CombatBuff,
+                                        RoutineManager.Current.CombatBuffBehavior
+                                    ),
                                     // Combat Routine
-                                    new Decorator(
+                                    new Decorator
+                                    (
                                         req => RoutineManager.Current.CombatBehavior != null
-                                            && Settings.Combat
-                                            && IsValidEnemy(Core.Player.CurrentTarget)
-                                            && Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location)
-                                            <= (RoutineManager.Current.PullRange + Core.Player.CurrentTarget.CombatReach + (float)Settings.TargetRangeMelee),
-                                        RoutineManager.Current.CombatBehavior))))));
+                                               && MudSettings.Instance.Combat
+                                               && IsValidEnemy(Core.Player.CurrentTarget)
+                                               && Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location)
+                                               <= RoutineManager.Current.PullRange
+                                                   + Core.Player.CurrentTarget.CombatReach
+                                                   + (float)MudSettings.Instance.TargetRangeMelee,
+                                        RoutineManager.Current.CombatBehavior
+                                    )
+                                )
+                            )
+                        )
+                    ));
 
         public override bool WantButton => true;
 
@@ -328,9 +405,9 @@ namespace Mud
             TextInfo text = cinfo.TextInfo;
 
             // Hotkey to Pause/Unpause
-            if (Settings.EnableHotkeyPause)
+            if (MudSettings.Instance.EnableHotkeyPause)
             {
-                try { key = (Keys)(new KeysConverter()).ConvertFromString(text.ToTitleCase(Settings.HotkeyPause)); }
+                try { key = (Keys)(new KeysConverter()).ConvertFromString(text.ToTitleCase(MudSettings.Instance.HotkeyPause)); }
                 catch (Exception ex) { key = Keys.None; Logging.Write(Colors.Brown, $"{ex}"); }
                 if (key != Keys.None)
                 {
@@ -338,28 +415,28 @@ namespace Mud
                         "HK_MUD_PAUSE",
                         key,
                         (ModifierKeys)Enum.Parse(typeof(ModifierKeys),
-                        ModifierKeyStrings[Settings.HotkeyModifierPause]),
+                        ModifierKeyStrings[MudSettings.Instance.HotkeyModifierPause]),
                         hkPause =>
                         {
-                            Settings.Paused = !Settings.Paused;
-                            if (Settings.Paused)
+                            MudSettings.Instance.Paused = !MudSettings.Instance.Paused;
+                            if (MudSettings.Instance.Paused)
                             {
                                 Logging.Write(Colors.Brown, @"[MudAssist] ==> Paused");
-                                if (Settings.EnableOverlay) Core.OverlayManager.AddToast(() => "Paused", TimeSpan.FromMilliseconds(1000), Colors.Yellow, Colors.Black, new FontFamily("Lato"));
+                                if (MudSettings.Instance.EnableOverlay) Core.OverlayManager.AddToast(() => "Paused", TimeSpan.FromMilliseconds(1000), Colors.Yellow, Colors.Black, new FontFamily("Lato"));
                             }
                             else
                             {
                                 Logging.Write(Colors.Brown, @"[MudAssist] ==> Unpaused");
-                                if (Settings.EnableOverlay) Core.OverlayManager.AddToast(() => "Unpaused", TimeSpan.FromMilliseconds(1000), Colors.Yellow, Colors.Black, new FontFamily("Lato"));
+                                if (MudSettings.Instance.EnableOverlay) Core.OverlayManager.AddToast(() => "Unpaused", TimeSpan.FromMilliseconds(1000), Colors.Yellow, Colors.Black, new FontFamily("Lato"));
                             }
                         });
                 }
             }
 
             // Hotkey to Change Targeting Mode
-            if (Settings.EnableHotkeyTargetMode)
+            if (MudSettings.Instance.EnableHotkeyTargetMode)
             {
-                try { key = (Keys)(new KeysConverter()).ConvertFromString(text.ToTitleCase(Settings.HotkeyTargetMode)); }
+                try { key = (Keys)(new KeysConverter()).ConvertFromString(text.ToTitleCase(MudSettings.Instance.HotkeyTargetMode)); }
                 catch (Exception ex) { key = Keys.None; Logging.Write(Colors.Brown, $"{ex}"); }
                 if (key != Keys.None)
                 {
@@ -367,17 +444,17 @@ namespace Mud
                         "HK_MUD_TARGET",
                         key,
                         (ModifierKeys)Enum.Parse(typeof(ModifierKeys),
-                        ModifierKeyStrings[Settings.HotkeyModifierTargetMode]),
+                        ModifierKeyStrings[MudSettings.Instance.HotkeyModifierTargetMode]),
                         hkTargetMode =>
                         {
-                            Logging.Write(Colors.Brown, $@"[MudAssist] ==> Previous Targeting Mode {TargetingModes[Settings.TargetingMode]}");
-                            if ((Settings.TargetingMode + 1) == TargetingModes.Length) Settings.TargetingMode = 0;
-                            else Settings.TargetingMode = (Settings.TargetingMode + 1);
-                            SettingsForm.SelectTargetingMode(Settings.TargetingMode);
-                            Logging.Write(Colors.Brown, $@"[MudAssist] ==> Target Mode {TargetingModes[Settings.TargetingMode]}");
-                            if (Settings.EnableOverlay)
+                            Logging.Write(Colors.Brown, $@"[MudAssist] ==> Previous Targeting Mode {TargetingModes[MudSettings.Instance.TargetingMode]}");
+                            if ((MudSettings.Instance.TargetingMode + 1) == TargetingModes.Length) MudSettings.Instance.TargetingMode = 0;
+                            else MudSettings.Instance.TargetingMode = (MudSettings.Instance.TargetingMode + 1);
+                            SettingsForm.SelectTargetingMode(MudSettings.Instance.TargetingMode);
+                            Logging.Write(Colors.Brown, $@"[MudAssist] ==> Target Mode {TargetingModes[MudSettings.Instance.TargetingMode]}");
+                            if (MudSettings.Instance.EnableOverlay)
                             {
-                                Core.OverlayManager.AddToast(() => $"Target: {TargetingModes[Settings.TargetingMode]}",
+                                Core.OverlayManager.AddToast(() => $"Target: {TargetingModes[MudSettings.Instance.TargetingMode]}",
                                                                     TimeSpan.FromMilliseconds(1000), Colors.Yellow, Colors.Black, new FontFamily("Lato"));
                             }
                         });
@@ -385,9 +462,9 @@ namespace Mud
             }
 
             // Hotkey to Toggle Movement
-            if (Settings.EnableHotkeyToogleMovement)
+            if (MudSettings.Instance.EnableHotkeyToogleMovement)
             {
-                try { key = (Keys)(new KeysConverter()).ConvertFromString(text.ToTitleCase(Settings.HotkeyToogleMovement)); }
+                try { key = (Keys)(new KeysConverter()).ConvertFromString(text.ToTitleCase(MudSettings.Instance.HotkeyToogleMovement)); }
                 catch (Exception ex) { key = Keys.None; Logging.Write(Colors.Brown, $"{ex}"); }
                 if (key != Keys.None)
                 {
@@ -395,29 +472,29 @@ namespace Mud
                         "HK_MUD_TOGGLE_MOVEMENT",
                         key,
                         (ModifierKeys)Enum.Parse(typeof(ModifierKeys),
-                        ModifierKeyStrings[Settings.HotkeyModifierToogleMovement]),
+                        ModifierKeyStrings[MudSettings.Instance.HotkeyModifierToogleMovement]),
                         hkToggleMovement =>
                         {
-                            Settings.AutoMove = !Settings.AutoMove;
+                            MudSettings.Instance.AutoMove = !MudSettings.Instance.AutoMove;
                             WaypointManager.StopNavigating();
-                            if (Settings.AutoMove)
+                            if (MudSettings.Instance.AutoMove)
                             {
                                 Logging.Write(Colors.Brown, @"[MudAssist] ==> Movement ON");
-                                if (Settings.EnableOverlay) Core.OverlayManager.AddToast(() => "Movement ON", TimeSpan.FromMilliseconds(1000), Colors.Yellow, Colors.Black, new FontFamily("Lato"));
+                                if (MudSettings.Instance.EnableOverlay) Core.OverlayManager.AddToast(() => "Movement ON", TimeSpan.FromMilliseconds(1000), Colors.Yellow, Colors.Black, new FontFamily("Lato"));
                             }
                             else
                             {
                                 Logging.Write(Colors.Brown, @"[MudAssist] ==> Movement OFF");
-                                if (Settings.EnableOverlay) Core.OverlayManager.AddToast(() => "Movement OFF", TimeSpan.FromMilliseconds(1000), Colors.Yellow, Colors.Black, new FontFamily("Lato"));
+                                if (MudSettings.Instance.EnableOverlay) Core.OverlayManager.AddToast(() => "Movement OFF", TimeSpan.FromMilliseconds(1000), Colors.Yellow, Colors.Black, new FontFamily("Lato"));
                             }
                         });
                 }
             }
 
             // Hotkey to Toggle Movement Mode
-            if (Settings.EnableHotkeyMovementMode)
+            if (MudSettings.Instance.EnableHotkeyMovementMode)
             {
-                try { key = (Keys)(new KeysConverter()).ConvertFromString(text.ToTitleCase(Settings.HotkeyMovementMode)); }
+                try { key = (Keys)(new KeysConverter()).ConvertFromString(text.ToTitleCase(MudSettings.Instance.HotkeyMovementMode)); }
                 catch (Exception ex) { key = Keys.None; Logging.Write(Colors.Brown, $"{ex}"); }
                 if (key != Keys.None)
                 {
@@ -425,17 +502,17 @@ namespace Mud
                         "HK_MUD_TOGGLE_MOVEMENT_MODE",
                         key,
                         (ModifierKeys)Enum.Parse(typeof(ModifierKeys),
-                        ModifierKeyStrings[Settings.HotkeyModifierMovementMode]),
+                        ModifierKeyStrings[MudSettings.Instance.HotkeyModifierMovementMode]),
                         hkToggleMovementMode =>
                         {
-                            Logging.Write(Colors.Brown, $@"[MudAssist] ==> Previous Movement Mode {TargetingModes[Settings.TargetingMode]}");
-                            if ((Settings.TargetingMode + 1) == MovementModes.Length) Settings.TargetingMode = 0;
-                            else Settings.TargetingMode = (Settings.TargetingMode + 1);
-                            SettingsForm.SelectMovementMode(Settings.TargetingMode);
-                            Logging.Write(Colors.Brown, $@"[MudAssist] ==> Move Mode {MovementModes[Settings.TargetingMode]}");
-                            if (Settings.EnableOverlay)
+                            Logging.Write(Colors.Brown, $@"[MudAssist] ==> Previous Movement Mode {TargetingModes[MudSettings.Instance.TargetingMode]}");
+                            if ((MudSettings.Instance.TargetingMode + 1) == MovementModes.Length) MudSettings.Instance.TargetingMode = 0;
+                            else MudSettings.Instance.TargetingMode = (MudSettings.Instance.TargetingMode + 1);
+                            SettingsForm.SelectMovementMode(MudSettings.Instance.TargetingMode);
+                            Logging.Write(Colors.Brown, $@"[MudAssist] ==> Move Mode {MovementModes[MudSettings.Instance.TargetingMode]}");
+                            if (MudSettings.Instance.EnableOverlay)
                             {
-                                Core.OverlayManager.AddToast(() => $"Move Mode: {MovementModes[Settings.TargetingMode]}",
+                                Core.OverlayManager.AddToast(() => $"Move Mode: {MovementModes[MudSettings.Instance.TargetingMode]}",
                                                                 TimeSpan.FromMilliseconds(1000), Colors.Yellow, Colors.Black, new FontFamily("Lato"));
                             }
                         });
@@ -483,7 +560,7 @@ namespace Mud
             Logging.Write(Colors.Brown, @"[MudAssist] ==> Finding nearest enemy to attack...");
             return GameObjectManager.GameObjects.Where(u =>
                 IsValidEnemy(u)
-                && (decimal)Core.Player.Location.Distance3D(u.Location) <= Settings.MaxTargetDistance).OrderBy(u => Core.Player.Location.Distance3D(u.Location)).FirstOrDefault();
+                && (decimal)Core.Player.Location.Distance3D(u.Location) <= MudSettings.Instance.MaxTargetDistance).OrderBy(u => Core.Player.Location.Distance3D(u.Location)).FirstOrDefault();
         }
 
         public static Character GetPartyTank()

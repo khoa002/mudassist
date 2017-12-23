@@ -21,13 +21,15 @@ namespace Mud.Settings.Forms
         public SettingsForm()
         {
             InitializeComponent();
+            ReloadSettings();
+            InitializeDataBindings();
             _instance = this;
         }
 
         private void MudSettingsForm_Load(object sender, EventArgs e)
         {
             t = new Timer { Interval = 1000 };
-            t.Tick += new EventHandler(OnTickTimer);
+            t.Tick += OnTickTimer;
             try
             {
                 if (!CommonBehaviors.IsLoading)
@@ -43,12 +45,16 @@ namespace Mud.Settings.Forms
             }
             catch (Exception ex) { Logging.Write(Colors.Brown, $"{ex}"); }
 
-            TopMost = MudAssist.Settings.AlwaysOnTop;
-            if (MudAssist.IsBeta) Text = $"Mud Assist v{MudAssist.Version} {MudAssist.Beta}-{MudAssist.BetaVer} - Settings";
-            else Text = $"Mud Assist v{MudAssist.Version} - Settings";
+            TopMost = MudSettings.Instance.AlwaysOnTop;
+
+            if (MudAssist.IsBeta)
+                Text = $"Mud Assist v{MudAssist.Version} {MudAssist.Beta}-{MudAssist.BetaVer} - Settings";
+            else
+                Text = $"Mud Assist v{MudAssist.Version} - Settings";
+
             if (!CommonBehaviors.IsLoading) LoadCharInfo();
-            ReloadSettings();
-            UpdateCheckBoxes(null, false);
+
+            UpdateCheckBoxes(null);
             UpdateStatus();
         }
 
@@ -64,11 +70,113 @@ namespace Mud.Settings.Forms
             if (_instance != null) _instance.cmbTargetingMode.SelectedIndex = p;
         }
 
+        private void InitializeDataBindings()
+        {
+            // Char Info
+            cbxCharHideName.DataBindings.Add("Checked", MudSettings.Instance, "HideName",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cmbSecondsBetweenUpdate.DataSource = MudAssist.SecondsBetweenUpdates;
+            cmbSecondsBetweenUpdate.DataBindings.Add("SelectedIndex", MudSettings.Instance, "SecondsBetweenUpdate",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+
+            // Routine
+            cbxOutOfCombatRest.DataBindings.Add("Checked", MudSettings.Instance, "Rest",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxOutOfCombatHeal.DataBindings.Add("Checked", MudSettings.Instance, "HealOutOfCombat",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxOutOfCombatBuff.DataBindings.Add("Checked", MudSettings.Instance, "PreCombatBuff",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxOutOfCombatPullBuff.DataBindings.Add("Checked", MudSettings.Instance, "PullBuff",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxCombatActionsPull.DataBindings.Add("Checked", MudSettings.Instance, "Pull",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxCombatActionsHeal.DataBindings.Add("Checked", MudSettings.Instance, "Heal",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxCombatActionsBuff.DataBindings.Add("Checked", MudSettings.Instance, "CombatBuff",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxCombatActionsCombat.DataBindings.Add("Checked", MudSettings.Instance, "Combat",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+
+            // Movement
+            cmbNavigationProvider.DataSource = MudAssist.SupportedNavigationProviders;
+            cmbNavigationProvider.DataBindings.Add("SelectedIndex", MudSettings.Instance, "NavigationProvider",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxAutoFace.DataBindings.Add("Checked", MudSettings.Instance, "AutoFaceTarget",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxAutoMoveTarget.DataBindings.Add("Checked", MudSettings.Instance, "AutoMove",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cmbTargetingMode.DataSource = MudAssist.TargetingModes;
+            cmbTargetingMode.DataBindings.Add("SelectedIndex", MudSettings.Instance, "TargetingMode",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cmbMovementMode.DataSource = MudAssist.MovementModes;
+            cmbMovementMode.DataBindings.Add("SelectedIndex", MudSettings.Instance, "MovementMode",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+
+            // Hotkey
+            cbxEnableHotkeyUnPause.DataBindings.Add("Checked", MudSettings.Instance, "EnableHotkeyPause",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxEnableHotkeyTargetMode.DataBindings.Add("Checked", MudSettings.Instance, "EnableHotkeyTargetMode",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxEnableHotkeyToogleMovement.DataBindings.Add("Checked", MudSettings.Instance, "EnableHotkeyToogleMovement",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxEnableHotkeyMovementMode.DataBindings.Add("Checked", MudSettings.Instance, "EnableHotkeyMovementMode",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cmbHotkeyModifierPause.DataSource = MudAssist.ModifierKeyStrings;
+            cmbHotkeyModifierPause.DataBindings.Add("SelectedIndex", MudSettings.Instance, "HotkeyModifierPause",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cmbHotkeyModifierTargetMode.DataSource = MudAssist.ModifierKeyStrings;
+            cmbHotkeyModifierTargetMode.DataBindings.Add("SelectedIndex", MudSettings.Instance, "HotkeyModifierTargetMode",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cmbHotkeyModifierToogleMovement.DataSource = MudAssist.ModifierKeyStrings;
+            cmbHotkeyModifierToogleMovement.DataBindings.Add("SelectedIndex", MudSettings.Instance, "HotkeyModifierToogleMovement",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cmbHotkeyModifierMovementMode.DataSource = MudAssist.ModifierKeyStrings;
+            cmbHotkeyModifierMovementMode.DataBindings.Add("SelectedIndex", MudSettings.Instance, "HotkeyModifierMovementMode",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            tbxHotkeyPause.DataBindings.Add("Text", MudSettings.Instance, "HotkeyPause",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            tbxHotkeyTargetMode.DataBindings.Add("Text", MudSettings.Instance, "HotkeyTargetMode",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            tbxHotkeyMovementMode.DataBindings.Add("Text", MudSettings.Instance, "HotkeyMovementMode",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            tbxHotkeyToogleMovement.DataBindings.Add("Text", MudSettings.Instance, "HotkeyToogleMovement",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+
+            // Misc
+            numMinMoveDistanceTank.DataBindings.Add("Value", MudSettings.Instance, "FollowRangeMin",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            numMaxMoveDistanceTank.DataBindings.Add("Value", MudSettings.Instance, "FollowRangeMax",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            numTargetingDistance.DataBindings.Add("Value", MudSettings.Instance, "MaxTargetDistance",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+
+            cbxPaused.DataBindings.Add("Checked", MudSettings.Instance, "Paused",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxExecuteWhileMoving.DataBindings.Add("Checked", MudSettings.Instance, "ExecuteWhileMoving",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxAlwaysOnTop.DataBindings.Add("Checked", MudSettings.Instance, "AlwaysOnTop",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxEnableOverlay.DataBindings.Add("Checked", MudSettings.Instance, "EnableOverlay",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxSprintOutOfCombat.DataBindings.Add("Checked", MudSettings.Instance, "SprintOutOfCombat",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxSprintInCombat.DataBindings.Add("Checked", MudSettings.Instance, "SprintInCombat",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxSprintInInstance.DataBindings.Add("Checked", MudSettings.Instance, "SprintInInstance",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxAutoTalkToNPCs.DataBindings.Add("Checked", MudSettings.Instance, "TalkToNpc",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxAutoAcceptQuests.DataBindings.Add("Checked", MudSettings.Instance, "AcceptQuests",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxAutoSkipCutscenes.DataBindings.Add("Checked", MudSettings.Instance, "SkipCutscenes",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+        }
+
         public static void UpdateStatus()
         {
             if (_instance != null)
             {
-                if (MudAssist.Settings.Paused)
+                if (MudSettings.Instance.Paused)
                 {
                     _instance.tspPauseStatus.Text = "STOPPED";
                     _instance.tspPauseStatus.ForeColor = System.Drawing.Color.Red;
@@ -79,7 +187,7 @@ namespace Mud.Settings.Forms
                     _instance.tspPauseStatus.ForeColor = System.Drawing.Color.Green;
                 }
 
-                if (MudAssist.Settings.AutoMove)
+                if (MudSettings.Instance.AutoMove)
                 {
                     _instance.tspMovementStatus.Text = "+AMOVE";
                     _instance.tspMovementStatus.ForeColor = System.Drawing.Color.Cyan;
@@ -90,8 +198,8 @@ namespace Mud.Settings.Forms
                     _instance.tspMovementStatus.ForeColor = System.Drawing.Color.RoyalBlue;
                 }
 
-                _instance.tspFollowModeStatus.Text = "M: " + MudAssist.MovementModes[MudAssist.Settings.TargetingMode].ToUpper();
-                _instance.tspTargetModeStatus.Text = "T: " + MudAssist.TargetingModes[MudAssist.Settings.TargetingMode].ToUpper();
+                _instance.tspFollowModeStatus.Text = "M: " + MudAssist.MovementModes[MudSettings.Instance.TargetingMode].ToUpper();
+                _instance.tspTargetModeStatus.Text = "T: " + MudAssist.TargetingModes[MudSettings.Instance.TargetingMode].ToUpper();
             }
         }
 
@@ -324,19 +432,19 @@ namespace Mud.Settings.Forms
                 tbxCharPiety.Text = $"PTY : {JobHelper.PTY}";
             }
 
-            switch (Core.Player.GrandCompany.ToString())
+            switch (Core.Player.GrandCompany)
             {
-                case "Order_Of_The_Twin_Adder":
+                case GrandCompany.Twin_Adder:
                     ptbCharGrandCompany.Image = Resources.order_of_the_twin_adder;
                     tbxCharGrandCompany.Text = "Order Of The Twin Adder";
                     break;
 
-                case "Immortal_Flames":
+                case GrandCompany.Immortal_Flames:
                     ptbCharGrandCompany.Image = Resources.immortal_flames;
                     tbxCharGrandCompany.Text = "Immortal Flames";
                     break;
 
-                case "Maelstrom":
+                case GrandCompany.Maelstrom:
                     ptbCharGrandCompany.Image = Resources.maelstrom;
                     tbxCharGrandCompany.Text = "Maelstrom";
                     break;
@@ -352,97 +460,39 @@ namespace Mud.Settings.Forms
 
         private void ReloadSettings()
         {
-            cbxCharHideName.Checked = MudAssist.Settings.HideName;
-            cmbSecondsBetweenUpdate.Items.Clear();
-            cmbSecondsBetweenUpdate.Items.AddRange(MudAssist.SecondsBetweenUpdates);
-            cmbSecondsBetweenUpdate.SelectedIndex = MudAssist.Settings.SecondsBetweenUpdate;
-
             cmbCombatRoutines.Items.Clear();
             RoutineManager.Routines.ForEach(r => cmbCombatRoutines.Items.Add(r.Name));
             cmbCombatRoutines.SelectedIndex = cmbCombatRoutines.Items.IndexOf(RoutineManager.Current.Name);
-            cbxOutOfCombatRest.Checked = MudAssist.Settings.Rest;
-            cbxOutOfCombatHeal.Checked = MudAssist.Settings.HealOutOfCombat;
-            cbxOutOfCombatBuff.Checked = MudAssist.Settings.PreCombatBuff;
-            cbxOutOfCombatPullBuff.Checked = MudAssist.Settings.PullBuff;
-            cbxCombatActionsPull.Checked = MudAssist.Settings.Pull;
-            cbxCombatActionsHeal.Checked = MudAssist.Settings.Heal;
-            cbxCombatActionsBuff.Checked = MudAssist.Settings.CombatBuff;
-            cbxCombatActionsCombat.Checked = MudAssist.Settings.Combat;
-
-            cmbNavigationProvider.Items.Clear();
-            cmbNavigationProvider.Items.AddRange(MudAssist.SupportedNavigationProviders);
-            cmbNavigationProvider.SelectedIndex = MudAssist.Settings.NavigationProvider;
-            cbxAutoFace.Checked = MudAssist.Settings.AutoFaceTarget = GameSettingsManager.FaceTargetOnAction;
-            cbxAutoMoveTarget.Checked = MudAssist.Settings.AutoMove;
-            numMinMoveDistanceTank.Value = MudAssist.Settings.FollowRangeMin;
-            numMaxMoveDistanceTank.Value = MudAssist.Settings.FollowRangeMax;
-            numTargetingDistance.Value = MudAssist.Settings.MaxTargetDistance;
-            cmbTargetingMode.Items.Clear();
-            cmbTargetingMode.Items.AddRange(MudAssist.TargetingModes);
-            cmbTargetingMode.SelectedIndex = MudAssist.Settings.TargetingMode;
-            SelectTargetingMode(MudAssist.Settings.TargetingMode);
-            cmbMovementMode.Items.Clear();
-            cmbMovementMode.Items.AddRange(MudAssist.MovementModes);
-            cmbMovementMode.SelectedIndex = MudAssist.Settings.MovementMode;
-
-            cbxEnableHotkeyUnPause.Checked = MudAssist.Settings.EnableHotkeyPause;
-            cbxEnableHotkeyTargetMode.Checked = MudAssist.Settings.EnableHotkeyTargetMode;
-            cbxEnableHotkeyToogleMovement.Checked = MudAssist.Settings.EnableHotkeyToogleMovement;
-            cbxEnableHotkeyMovementMode.Checked = MudAssist.Settings.EnableHotkeyMovementMode;
-            cmbHotkeyModifierPause.Items.Clear();
-            cmbHotkeyModifierPause.Items.AddRange(MudAssist.ModifierKeyStrings);
-            cmbHotkeyModifierPause.SelectedIndex = MudAssist.Settings.HotkeyModifierPause;
-            cmbHotkeyModifierTargetMode.Items.Clear();
-            cmbHotkeyModifierTargetMode.Items.AddRange(MudAssist.ModifierKeyStrings);
-            cmbHotkeyModifierTargetMode.SelectedIndex = MudAssist.Settings.HotkeyModifierTargetMode;
-            cmbHotkeyModifierToogleMovement.Items.Clear();
-            cmbHotkeyModifierToogleMovement.Items.AddRange(MudAssist.ModifierKeyStrings);
-            cmbHotkeyModifierToogleMovement.SelectedIndex = MudAssist.Settings.HotkeyModifierToogleMovement;
-            cmbHotkeyModifierMovementMode.Items.Clear();
-            cmbHotkeyModifierMovementMode.Items.AddRange(MudAssist.ModifierKeyStrings);
-            cmbHotkeyModifierMovementMode.SelectedIndex = MudAssist.Settings.HotkeyModifierMovementMode;
-            tbxHotkeyPause.Text = MudAssist.Settings.HotkeyPause;
-            tbxHotkeyTargetMode.Text = MudAssist.Settings.HotkeyTargetMode;
-            tbxHotkeyMovementMode.Text = MudAssist.Settings.HotkeyMovementMode;
-            tbxHotkeyToogleMovement.Text = MudAssist.Settings.HotkeyToogleMovement;
         }
 
-        private void UpdateCheckBoxes(object sender, bool updateSettings)
+        private void UpdateCheckBoxes(object sender)
         {
             if (sender == cbxEnableHotkeyUnPause)
             {
-                if (updateSettings) MudAssist.Settings.EnableHotkeyPause = cbxEnableHotkeyUnPause.Checked;
                 cmbHotkeyModifierPause.Enabled = cbxEnableHotkeyUnPause.Checked;
                 tbxHotkeyPause.Enabled = cbxEnableHotkeyUnPause.Checked;
             }
             else if (sender == cbxEnableHotkeyTargetMode)
             {
-                if (updateSettings) MudAssist.Settings.EnableHotkeyTargetMode = cbxEnableHotkeyTargetMode.Checked;
                 cmbHotkeyModifierTargetMode.Enabled = cbxEnableHotkeyTargetMode.Checked;
                 tbxHotkeyTargetMode.Enabled = cbxEnableHotkeyTargetMode.Checked;
             }
             else if (sender == cbxEnableHotkeyToogleMovement)
             {
-                if (updateSettings) MudAssist.Settings.EnableHotkeyToogleMovement = cbxEnableHotkeyToogleMovement.Checked;
                 cmbHotkeyModifierToogleMovement.Enabled = cbxEnableHotkeyToogleMovement.Checked;
                 tbxHotkeyToogleMovement.Enabled = cbxEnableHotkeyToogleMovement.Checked;
             }
             else if (sender == cbxEnableHotkeyMovementMode)
             {
-                if (updateSettings) MudAssist.Settings.EnableHotkeyMovementMode = cbxEnableHotkeyMovementMode.Checked;
                 cmbHotkeyModifierMovementMode.Enabled = cbxEnableHotkeyMovementMode.Checked;
                 tbxHotkeyMovementMode.Enabled = cbxEnableHotkeyMovementMode.Checked;
             }
             else
             {
-                UpdateCheckBoxes(cbxEnableHotkeyUnPause, false);
-                UpdateCheckBoxes(cbxEnableHotkeyTargetMode, false);
-                UpdateCheckBoxes(cbxEnableHotkeyToogleMovement, false);
-                UpdateCheckBoxes(cbxEnableHotkeyMovementMode, false);
-                cbxEnableHotkeyUnPause.Checked = MudAssist.Settings.EnableHotkeyPause;
-                cbxEnableHotkeyTargetMode.Checked = MudAssist.Settings.EnableHotkeyTargetMode;
-                cbxEnableHotkeyToogleMovement.Checked = MudAssist.Settings.EnableHotkeyToogleMovement;
-                cbxEnableHotkeyMovementMode.Checked = MudAssist.Settings.EnableHotkeyMovementMode;
+                UpdateCheckBoxes(cbxEnableHotkeyUnPause);
+                UpdateCheckBoxes(cbxEnableHotkeyTargetMode);
+                UpdateCheckBoxes(cbxEnableHotkeyToogleMovement);
+                UpdateCheckBoxes(cbxEnableHotkeyMovementMode);
             }
 
             MudAssist.ResetHotkeys();
@@ -472,62 +522,15 @@ namespace Mud.Settings.Forms
 
         #region CheckBox Events
 
-        private void OnCheckedAlwaysOnTop(object sender, EventArgs e) => MudAssist.Settings.AlwaysOnTop = TopMost = cbxAlwaysOnTop.Checked;
+        private void OnCheckedEnableHotkeyMovementMode(object sender, EventArgs e) => UpdateCheckBoxes(sender);
 
-        private void OnCheckedAutoAcceptQuests(object sender, EventArgs e) => MudAssist.Settings.AcceptQuests = cbxAutoAcceptQuests.Checked;
+        private void OnCheckedEnableHotkeyTargetMode(object sender, EventArgs e) => UpdateCheckBoxes(sender);
 
-        private void OnCheckedAutoCompleteQuests(object sender, EventArgs e) => MudAssist.Settings.CompleteQuests = cbxAutoCompleteQuests.Checked;
+        private void OnCheckedEnableHotkeyUnPause(object sender, EventArgs e) => UpdateCheckBoxes(sender);
 
-        private void OnCheckedAutoFace(object sender, EventArgs e) => MudAssist.Settings.AutoFaceTarget = GameSettingsManager.FaceTargetOnAction = cbxAutoFace.Checked;
+        private void OnCheckedEnableToogleMovement(object sender, EventArgs e) => UpdateCheckBoxes(sender);
 
-        private void OnCheckedAutoMoveTarget(object sender, EventArgs e) => MudAssist.Settings.AutoMove = cbxAutoMoveTarget.Checked;
-
-        private void OnCheckedAutoTalkToNPCs(object sender, EventArgs e) => MudAssist.Settings.TalkToNPC = cbxAutoTalkToNPCs.Checked;
-
-        private void OnCheckedCombatActionsBuff(object sender, EventArgs e) => MudAssist.Settings.CombatBuff = cbxCombatActionsBuff.Checked;
-
-        private void OnCheckedCombatActionsCombat(object sender, EventArgs e) => MudAssist.Settings.Combat = cbxCombatActionsCombat.Checked;
-
-        private void OnCheckedCombatActionsHeal(object sender, EventArgs e) => MudAssist.Settings.Heal = cbxCombatActionsHeal.Checked;
-
-        private void OnCheckedCombatActionsPull(object sender, EventArgs e) => MudAssist.Settings.Pull = cbxCombatActionsPull.Checked;
-
-        private void OnCheckedEnableHotkeyMovementMode(object sender, EventArgs e) => UpdateCheckBoxes(sender, true);
-
-        private void OnCheckedEnableHotkeyTargetMode(object sender, EventArgs e) => UpdateCheckBoxes(sender, true);
-
-        private void OnCheckedEnableHotkeyUnPause(object sender, EventArgs e) => UpdateCheckBoxes(sender, true);
-
-        private void OnCheckedEnableOverlay(object sender, EventArgs e) => MudAssist.Settings.EnableOverlay = cbxEnableOverlay.Checked;
-
-        private void OnCheckedEnableToogleMovement(object sender, EventArgs e) => UpdateCheckBoxes(sender, true);
-
-        private void OnCheckedExecuteWhileMoving(object sender, EventArgs e) => MudAssist.Settings.ExecuteWhileMoving = cbxExecuteWhileMoving.Checked;
-
-        private void OnCheckedHideCharName(object sender, EventArgs e)
-        {
-            if (cbxCharHideName.Checked) tbxCharName.UseSystemPasswordChar = true;
-            else tbxCharName.UseSystemPasswordChar = false;
-            MudAssist.Settings.HideName = cbxCharHideName.Checked;
-        }
-
-        private void OnCheckedOutOfCombatBuff(object sender, EventArgs e) => MudAssist.Settings.PreCombatBuff = cbxOutOfCombatBuff.Checked;
-
-        private void OnCheckedOutOfCombatHeal(object sender, EventArgs e) => MudAssist.Settings.HealOutOfCombat = cbxOutOfCombatHeal.Checked;
-
-        private void OnCheckedOutOfCombatPullBuff(object sender, EventArgs e) => MudAssist.Settings.PullBuff = cbxOutOfCombatPullBuff.Checked;
-
-        private void OnCheckedOutOfCombatRest(object sender, EventArgs e) => MudAssist.Settings.Rest = cbxOutOfCombatRest.Checked;
-
-        private void OnCheckedPaused(object sender, EventArgs e) => MudAssist.Settings.Paused = cbxPaused.Checked;
-
-        private void OnCheckedSkipCutscenes(object sender, EventArgs e) => MudAssist.Settings.SkipCustscenes = cbxAutoSkipCutscenes.Checked;
-
-        private void OnCheckedSprintInCombat(object sender, EventArgs e) => MudAssist.Settings.SprintInCombat = cbxSprintInInstance.Checked;
-
-        private void OnCheckedSprintInInstance(object sender, EventArgs e) => MudAssist.Settings.SprintInInstance = cbxSprintInCombat.Checked;
-
-        private void OnCheckedSprintOutOfCombat(object sender, EventArgs e) => MudAssist.Settings.SprintOutOfCombat = cbxSprintOutOfCombat.Checked;
+        private void OnCheckedHideCharName(object sender, EventArgs e) => tbxCharName.UseSystemPasswordChar = cbxCharHideName.Checked;
 
         #endregion CheckBox Events
 
@@ -542,38 +545,8 @@ namespace Mud.Settings.Forms
             RoutineManager.PickRoutine();
         }
 
-        private void OnSelectedHotkeyModifierMovement(object sender, EventArgs e) => MudAssist.Settings.HotkeyModifierToogleMovement = cmbHotkeyModifierToogleMovement.SelectedIndex;
-
-        private void OnSelectedHotkeyModifierMovementMode(object sender, EventArgs e) => MudAssist.Settings.HotkeyModifierTargetMode = cmbHotkeyModifierMovementMode.SelectedIndex;
-
-        private void OnSelectedHotkeyModifierPause(object sender, EventArgs e) => MudAssist.Settings.HotkeyModifierPause = cmbHotkeyModifierPause.SelectedIndex;
-
-        private void OnSelectedHotkeyModifierTargetMode(object sender, EventArgs e) => MudAssist.Settings.HotkeyModifierTargetMode = cmbHotkeyModifierTargetMode.SelectedIndex;
-
-        private void OnSelectedMovementMode(object sender, EventArgs e) => MudAssist.Settings.MovementMode = cmbMovementMode.SelectedIndex;
-
-        private void OnSelectedNavigationProvider(object sender, EventArgs e)
-        {
-            MudAssist.Settings.NavigationProvider = cmbNavigationProvider.SelectedIndex;
-            MudAssist.UpdateNavigationProvider();
-        }
-
-        private void OnSelectedSecondsBetweenUpdate(object sender, EventArgs e) => MudAssist.Settings.SecondsBetweenUpdate = cmbSecondsBetweenUpdate.SelectedIndex;
-
-        private void OnSelectedTargetingMode(object sender, EventArgs e) => MudAssist.Settings.TargetingMode = cmbTargetingMode.SelectedIndex;
+        private void OnSelectedNavigationProvider(object sender, EventArgs e) =>  MudAssist.UpdateNavigationProvider();
 
         #endregion ComboBox Events
-
-        #region TextBox Events
-
-        private void OnTextChangedtbxHotkeyMovementMode(object sender, EventArgs e) => MudAssist.Settings.HotkeyMovementMode = tbxHotkeyMovementMode.Text;
-
-        private void OnTextChangedtbxHotkeyPause(object sender, EventArgs e) => MudAssist.Settings.HotkeyPause = tbxHotkeyPause.Text;
-
-        private void OnTextChangedtbxHotkeyTargetMode(object sender, EventArgs e) => MudAssist.Settings.HotkeyTargetMode = tbxHotkeyTargetMode.Text;
-
-        private void OnTextChangedtbxHotkeyToogleMovement(object sender, EventArgs e) => MudAssist.Settings.HotkeyToogleMovement = tbxHotkeyToogleMovement.Text;
-
-        #endregion TextBox Events
     }
 }

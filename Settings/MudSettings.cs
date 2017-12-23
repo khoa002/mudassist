@@ -1,184 +1,589 @@
 ﻿using ff14bot.Helpers;
 using Newtonsoft.Json;
 using System.ComponentModel;
-using System.Configuration;
 using System.IO;
+using ff14bot.Managers;
 
 namespace Mud.Settings
 {
     public class MudSettings : JsonSettings
     {
-        private MudSettings(string filename) : base(Path.Combine(CharacterSettingsDirectory, filename + ".json"))
-        {
-        }
+        private static MudSettings _settings;
 
-        [JsonIgnore]
-        public static MudSettings Instance { get; } = new MudSettings("MudSettings");
+        public static MudSettings Instance => _settings ?? (_settings = new MudSettings("MudAssist"));
+
+        private MudSettings(string filename) : base(Path.Combine(CharacterSettingsDirectory, filename + ".json"))
+        {}
 
         #region Char Info
 
-        [Setting, DefaultValue(false)]
-        public bool HideName { get; set; }
+        private bool _hideName;
+        [JsonProperty("HideName"), DefaultValue(false)]
+        public bool HideName
+        {
+            get => _hideName;
+            set
+            {
+                _hideName = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(2)]
-        public int SecondsBetweenUpdate { get; set; }
+        private int _secondsBetweenUpdate;
+        [JsonProperty("SecondsBetweenUpdate"), DefaultValue(2)]
+        public int SecondsBetweenUpdate
+        {
+            get => _secondsBetweenUpdate;
+            set
+            {
+                _secondsBetweenUpdate = value;
+                Save();
+            }
+        }
 
         #endregion Char Info
 
         #region Questing
 
-        [Setting, DefaultValue(true)]
-        public bool AcceptQuests { get; set; }
+        private bool _acceptQuests;
+        [JsonProperty("AcceptQuests"), DefaultValue(true)]
+        public bool AcceptQuests
+        {
+            get => _acceptQuests;
+            set
+            {
+                _acceptQuests = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool CompleteQuests { get; set; }
+        private bool _completeQuests;
+        [JsonProperty("CompleteQuests"), DefaultValue(true)]
+        public bool CompleteQuests
+        {
+            get => _completeQuests;
+            set
+            {
+                _completeQuests = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool SkipCustscenes { get; set; }
+        private bool _skipCutscenes;
+        [JsonProperty("SkipCutscenes"), DefaultValue(true)]
+        public bool SkipCutscenes
+        {
+            get => _skipCutscenes;
+            set
+            {
+                _skipCutscenes = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool TalkToNPC { get; set; }
+        private bool _talkToNpc;
+        [JsonProperty("TalkToNpc"), DefaultValue(true)]
+        public bool TalkToNpc
+        {
+            get => _talkToNpc;
+            set
+            {
+                _talkToNpc = value;
+                Save();
+            }
+        }
 
         #endregion Questing
 
         #region Sprint
 
-        [Setting, DefaultValue(false)]
-        public bool SprintInCombat { get; set; }
+        private bool _sprintInCombat;
+        [JsonProperty("SprintInCombat"), DefaultValue(false)]
+        public bool SprintInCombat
+        {
+            get => _sprintInCombat;
+            set
+            {
+                _sprintInCombat = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(false)]
-        public bool SprintInInstance { get; set; }
+        private bool _sprintInInstance;
+        [JsonProperty("SprintInInstance"), DefaultValue(false)]
+        public bool SprintInInstance
+        {
+            get => _sprintInInstance;
+            set
+            {
+                _sprintInInstance = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool SprintOutOfCombat { get; set; }
+        private bool _sprintOutOfCombat;
+        [JsonProperty("SprintOutOfCombat"), DefaultValue(true)]
+        public bool SprintOutOfCombat
+        {
+            get => _sprintOutOfCombat;
+            set
+            {
+                _sprintOutOfCombat = value;
+                Save();
+            }
+        }
 
         #endregion Sprint
 
         #region Routine
 
-        [Setting, DefaultValue(true)]
-        public bool Combat { get; set; }
+        private bool _combat;
+        [JsonProperty("Combat"), DefaultValue(true)]
+        public bool Combat
+        {
+            get => _combat;
+            set
+            {
+                _combat = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool CombatBuff { get; set; }
+        private bool _combatBuff;
+        [JsonProperty("CombatBuff"), DefaultValue(true)]
+        public bool CombatBuff
+        {
+            get => _combatBuff;
+            set
+            {
+                _combatBuff = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool Heal { get; set; }
+        private bool _heal;
+        [JsonProperty("Heal"), DefaultValue(true)]
+        public bool Heal
+        {
+            get => _heal;
+            set
+            {
+                _heal = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool HealOutOfCombat { get; set; }
+        private bool _healOutOfCombat;
+        [JsonProperty("HealOutOfCombat"), DefaultValue(true)]
+        public bool HealOutOfCombat
+        {
+            get => _healOutOfCombat;
+            set
+            {
+                _healOutOfCombat = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool PreCombatBuff { get; set; }
+        private bool _preCombatBuff;
+        [JsonProperty("PreCombatBuff"), DefaultValue(true)]
+        public bool PreCombatBuff
+        {
+            get => _preCombatBuff;
+            set
+            {
+                _preCombatBuff = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool Pull { get; set; }
+        private bool _pull;
+        [JsonProperty("Pull"), DefaultValue(true)]
+        public bool Pull
+        {
+            get => _pull;
+            set
+            {
+                _pull = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool PullBuff { get; set; }
+        private bool _pullBuff;
+        [JsonProperty("PullBuff"), DefaultValue(true)]
+        public bool PullBuff
+        {
+            get => _pullBuff;
+            set
+            {
+                _pullBuff = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool Rest { get; set; }
+        private bool _rest;
+        [JsonProperty("Rest"), DefaultValue(true)]
+        public bool Rest
+        {
+            get => _rest;
+            set
+            {
+                _rest = value;
+                Save();
+            }
+        }
 
         #endregion Routine
 
         #region Hotkey
 
-        [Setting, DefaultValue(false)]
-        public bool EnableHotkeyMovementMode { get; set; }
+        private bool _enableHotkeyMovementMode;
+        [JsonProperty("EnableHotkeyMovementMode"), DefaultValue(false)]
+        public bool EnableHotkeyMovementMode
+        {
+            get => _enableHotkeyMovementMode;
+            set
+            {
+                _enableHotkeyMovementMode = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(false)]
-        public bool EnableHotkeyPause { get; set; }
+        private bool _enableHotkeyPause;
+        [JsonProperty("EnableHotkeyPause"), DefaultValue(false)]
+        public bool EnableHotkeyPause
+        {
+            get => _enableHotkeyPause;
+            set
+            {
+                _enableHotkeyPause = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(false)]
-        public bool EnableHotkeyTargetMode { get; set; }
+        private bool _enableHotkeyTargetMode;
+        [JsonProperty("EnableHotkeyTargetMode"), DefaultValue(false)]
+        public bool EnableHotkeyTargetMode
+        {
+            get => _enableHotkeyTargetMode;
+            set
+            {
+                _enableHotkeyTargetMode = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(false)]
-        public bool EnableHotkeyToogleMovement { get; set; }
+        private bool _enableHotkeyToogleMovement;
+        [JsonProperty("EnableHotkeyToogleMovement"), DefaultValue(false)]
+        public bool EnableHotkeyToogleMovement
+        {
+            get => _enableHotkeyToogleMovement;
+            set
+            {
+                _enableHotkeyToogleMovement = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(2)]
-        public int HotkeyModifierMovementMode { get; set; }
+        private int _hotkeyModifierMovementMode;
+        [JsonProperty("HotkeyModifierMovementMode"), DefaultValue(2)]
+        public int HotkeyModifierMovementMode
+        {
+            get => _hotkeyModifierMovementMode;
+            set
+            {
+                _hotkeyModifierMovementMode = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(0)]
-        public int HotkeyModifierPause { get; set; }
+        private int _hotkeyModifierPause;
+        [JsonProperty("HotkeyModifierPause"), DefaultValue(0)]
+        public int HotkeyModifierPause
+        {
+            get => _hotkeyModifierPause;
+            set
+            {
+                _hotkeyModifierPause = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(2)]
-        public int HotkeyModifierTargetMode { get; set; }
+        private int _hotkeyModifierTargetMode;
+        [JsonProperty("HotkeyModifierTargetMode"), DefaultValue(2)]
+        public int HotkeyModifierTargetMode
+        {
+            get => _hotkeyModifierTargetMode;
+            set
+            {
+                _hotkeyModifierTargetMode = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(2)]
-        public int HotkeyModifierToogleMovement { get; set; }
+        private int _hotkeyModifierToogleMovement;
+        [JsonProperty("HotkeyModifierToogleMovement"), DefaultValue(2)]
+        public int HotkeyModifierToogleMovement
+        {
+            get => _hotkeyModifierToogleMovement;
+            set
+            {
+                _hotkeyModifierToogleMovement = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue("F")]
-        public string HotkeyMovementMode { get; set; }
+        private string _hotkeyMovementMode;
+        [JsonProperty("HotkeyMovementMode"), DefaultValue("F")]
+        public string HotkeyMovementMode
+        {
+            get => _hotkeyMovementMode;
+            set
+            {
+                _hotkeyMovementMode = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue("Z")]
-        public string HotkeyPause { get; set; }
+        private string _hotkeyPause;
+        [JsonProperty("HotkeyPause"), DefaultValue("Z")]
+        public string HotkeyPause
+        {
+            get => _hotkeyPause;
+            set
+            {
+                _hotkeyPause = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue("X")]
-        public string HotkeyTargetMode { get; set; }
+        private string _hotkeyTargetMode;
+        [JsonProperty("HotkeyTargetMode"), DefaultValue("X")]
+        public string HotkeyTargetMode
+        {
+            get => _hotkeyTargetMode;
+            set
+            {
+                _hotkeyTargetMode = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue("C")]
-        public string HotkeyToogleMovement { get; set; }
+        private string _hotkeyToogleMovement;
+        [JsonProperty("HotkeyToogleMovement"), DefaultValue("C")]
+        public string HotkeyToogleMovement
+        {
+            get => _hotkeyToogleMovement;
+            set
+            {
+                _hotkeyToogleMovement = value;
+                Save();
+            }
+        }
 
         #endregion Hotkey
 
         #region Movement
 
-        [Setting, DefaultValue(true)]
-        public bool AutoFaceTarget { get; set; }
+        private bool _autoFaceTarget;
+        [JsonProperty("AutoFaceTarget"), DefaultValue(true)]
+        public bool AutoFaceTarget
+        {
+            get => _autoFaceTarget;
+            set
+            {
+                _autoFaceTarget = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(false)]
-        public bool AutoMove { get; set; }
+        private bool _autoMove;
+        [JsonProperty("AutoMove"), DefaultValue(false)]
+        public bool AutoMove
+        {
+            get => _autoMove;
+            set
+            {
+                _autoMove = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(15)]
-        public int FollowRangeMax { get; set; }
+        private int _followRangeMax;
+        [JsonProperty("FollowRangeMax"), DefaultValue(15)]
+        public int FollowRangeMax
+        {
+            get => _followRangeMax;
+            set
+            {
+                _followRangeMax = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(8)]
-        public int FollowRangeMin { get; set; }
+        private int _followRangeMin;
+        [JsonProperty("FollowRangeMin"), DefaultValue(8)]
+        public int FollowRangeMin
+        {
+            get => _followRangeMin;
+            set
+            {
+                _followRangeMin = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(50)]
-        public int MaxTargetDistance { get; set; }
+        private int _maxTargetDistance;
+        [JsonProperty("MaxTargetDistance"), DefaultValue(50)]
+        public int MaxTargetDistance
+        {
+            get => _maxTargetDistance;
+            set
+            {
+                _maxTargetDistance = value;
+                Save();
+            }
+        }
 
-        [Setting]
-        public System.Collections.Specialized.StringCollection MobsToTarget { get; set; }
+        private System.Collections.Specialized.StringCollection _mobsToTarget;
+        [JsonProperty("MobsToTarget")]
+        public System.Collections.Specialized.StringCollection MobsToTarget
+        {
+            get => _mobsToTarget;
+            set
+            {
+                _mobsToTarget = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(0)]
-        public int MovementMode { get; set; }
+        private int _movementMode;
+        [JsonProperty("MovementMode"), DefaultValue(0)]
+        public int MovementMode
+        {
+            get => _movementMode;
+            set
+            {
+                _movementMode = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(0)]
-        public int NavigationProvider { get; set; }
+        private int _navigationProvider;
+        [JsonProperty("NavigationProvider"), DefaultValue(0)]
+        public int NavigationProvider
+        {
+            get => _navigationProvider;
+            set
+            {
+                _navigationProvider = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(15)]
-        public int TargetDistance { get; set; }
+        private int _targetDistance;
+        [JsonProperty("TargetDistance"), DefaultValue(15)]
+        public int TargetDistance
+        {
+            get => _targetDistance;
+            set
+            {
+                _targetDistance = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(0)]
-        public int TargetingMode { get; set; }
+        private int _targetingMode;
+        [JsonProperty("TargetingMode"), DefaultValue(0)]
+        public int TargetingMode
+        {
+            get => _targetingMode;
+            set
+            {
+                _targetingMode = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(2)]
-        public int TargetRangeMelee { get; set; }
+        private int _targetRangeMelee;
+        [JsonProperty("TargetRangeMelee"), DefaultValue(2)]
+        public int TargetRangeMelee
+        {
+            get => _targetRangeMelee;
+            set
+            {
+                _targetRangeMelee = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(20)]
-        public int TargetRangeRanged { get; set; }
+        private int _targetRangeRanged;
+        [JsonProperty("TargetRangeRanged"), DefaultValue(20)]
+        public int TargetRangeRanged
+        {
+            get => _targetRangeRanged;
+            set
+            {
+                _targetRangeRanged = value;
+                Save();
+            }
+        }
 
         #endregion Movement
 
         #region General
 
-        [Setting, DefaultValue(false)]
-        public bool AlwaysOnTop { get; set; }
+        private bool _alwaysOnTop;
+        [JsonProperty("AlwaysOnTop"), DefaultValue(false)]
+        public bool AlwaysOnTop
+        {
+            get => _alwaysOnTop;
+            set
+            {
+                _alwaysOnTop = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(true)]
-        public bool ExecuteWhileMoving { get; set; }
+        private bool _executeWhileMoving;
+        [JsonProperty("ExecuteWhileMoving"), DefaultValue(true)]
+        public bool ExecuteWhileMoving
+        {
+            get => _executeWhileMoving;
+            set
+            {
+                _executeWhileMoving = value;
+                Save();
+            }
+        }
 
-        [Setting, DefaultValue(false)]
-        public bool Paused { get; set; }
+        private bool _paused;
+        [JsonProperty("Paused"), DefaultValue(false)]
+        public bool Paused
+        {
+            get => _paused;
+            set
+            {
+                _paused = value;
+                Save();
+            }
+        }
 
         #endregion General
 
         #region Overlay
 
-        [Setting, DefaultValue(false)]
-        public bool EnableOverlay { get; set; }
+        private bool _enableOverlay;
+        [JsonProperty("EnableOverlay"), DefaultValue(false)]
+        public bool EnableOverlay
+        {
+            get => _enableOverlay;
+            set
+            {
+                _enableOverlay = value;
+                Save();
+            }
+        }
 
         #endregion Overlay
     }
