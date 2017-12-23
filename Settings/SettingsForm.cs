@@ -530,6 +530,8 @@ namespace Mud.Settings.Forms
 
         private void OnCheckedEnableToogleMovement(object sender, EventArgs e) => UpdateCheckBoxes(sender);
 
+        private void OnCheckedAutoFace(object sender, EventArgs e) => GameSettingsManager.FaceTargetOnAction = cbxAutoFace.Checked;
+
         private void OnCheckedHideCharName(object sender, EventArgs e) => tbxCharName.UseSystemPasswordChar = cbxCharHideName.Checked;
 
         #endregion CheckBox Events

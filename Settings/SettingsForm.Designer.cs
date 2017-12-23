@@ -1179,6 +1179,7 @@ namespace Mud.Settings.Forms
             this.cbxAutoFace.Tag = "XC";
             this.cbxAutoFace.Text = "Auto Face Target";
             this.cbxAutoFace.UseVisualStyleBackColor = true;
+			this.cbxAutoFace.CheckedChanged += new System.EventHandler(this.OnCheckedAutoFace);
             //
             // lblDistanceYalms
             //

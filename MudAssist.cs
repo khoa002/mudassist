@@ -373,21 +373,24 @@ namespace Mud
         {
             UpdateNavigationProvider();
             Navigator.PlayerMover = new SlideMover();
+            GameSettingsManager.FaceTargetOnAction = MudSettings.Instance.AutoFaceTarget;
             Logging.Write(Colors.Brown, @"[MudAssist] Started");
             ResetHotkeys();
-            if (!IsStarted) IsStarted = true;
+            if (!IsStarted)
+                IsStarted = true;
         }
 
         public override void Stop()
         {
             _root = null;
             Navigator.PlayerMover = new NullMover();
-            ServiceNavigationProvider g = (Navigator.NavigationProvider as ServiceNavigationProvider);
-            if (g != null) g.Dispose();
+            if (Navigator.NavigationProvider is ServiceNavigationProvider g)
+                g.Dispose();
             Navigator.NavigationProvider = new NullProvider();
             Logging.Write(Colors.Brown, @"[MudAssist] Stopped");
             UnregisterAllHotkeys();
-            if (IsStarted) IsStarted = false;
+            if (IsStarted)
+                IsStarted = false;
         }
 
         #endregion Overrides
