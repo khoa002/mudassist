@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media;
+using Mud.Settings;
 
 namespace Mud.Helpers
 {
@@ -135,11 +136,11 @@ namespace Mud.Helpers
 			if (GetMoveTargetMelee() != null
 				// Start Navigating If > Max range
 				&& ((!IsNavigating
-				&& Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudAssist.Settings.FollowRangeMax)
+				&& Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudSettings.Instance.FollowRangeMax)
 				// Keep Navigating If > Min Range
 				|| (IsNavigating
-				&& (Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudAssist.Settings.FollowRangeMin))
-				|| (Core.Player.Location.Distance3D(moveTarget.Location) > ((float)MudAssist.Settings.TargetRangeMelee + moveTarget.CombatReach)
+				&& (Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudSettings.Instance.FollowRangeMin))
+				|| (Core.Player.Location.Distance3D(moveTarget.Location) > ((float)MudSettings.Instance.TargetRangeMelee + moveTarget.CombatReach)
 				&& MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
 				&& MudAssist.InCombat)))
 			{
@@ -163,11 +164,11 @@ namespace Mud.Helpers
 			if (GetMoveTargetRanged() != null
 				// Start Navigating If > Max range
 				&& ((!IsNavigating
-				&& Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudAssist.Settings.FollowRangeMax)
+				&& Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudSettings.Instance.FollowRangeMax)
 				// Keep Navigating If > Min Range
 				|| (IsNavigating
-				&& (Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudAssist.Settings.FollowRangeMin))
-				|| (Core.Player.Location.Distance3D(moveTarget.Location) > ((float)MudAssist.Settings.TargetRangeRanged + moveTarget.CombatReach)
+				&& (Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudSettings.Instance.FollowRangeMin))
+				|| (Core.Player.Location.Distance3D(moveTarget.Location) > ((float)MudSettings.Instance.TargetRangeRanged + moveTarget.CombatReach)
 				&& MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
 				&& MudAssist.InCombat)))
 			{
@@ -196,22 +197,22 @@ namespace Mud.Helpers
 		{
 			GameObject newTarget = null;
 			IEnumerable<Character> targetTanks = MudAssist.GetVisiblePartyMembers().Where(p => JobHelper.IsTank(p)
-				&& p.Location.Distance3D(Core.Player.Location) >= (float)MudAssist.Settings.FollowRangeMin
-				&& Core.Player.Location.Distance3D(p.Location) <= (float)MudAssist.Settings.MaxTargetDistance);
+				&& p.Location.Distance3D(Core.Player.Location) >= (float)MudSettings.Instance.FollowRangeMin
+				&& Core.Player.Location.Distance3D(p.Location) <= (float)MudSettings.Instance.MaxTargetDistance);
 			if (Core.Player.HasTarget
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudAssist.Settings.TargetRangeMelee + Core.Player.CurrentTarget.CombatReach)
-				&& Core.Player.Location.Distance3D(Core.Player.CurrentTarget.Location) <= (float)MudAssist.Settings.MaxTargetDistance
+				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudSettings.Instance.TargetRangeMelee + Core.Player.CurrentTarget.CombatReach)
+				&& Core.Player.Location.Distance3D(Core.Player.CurrentTarget.Location) <= (float)MudSettings.Instance.MaxTargetDistance
 				&& ((MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudAssist.Settings.TargetRangeMelee + Core.Player.CurrentTarget.CombatReach)
-				&& (MudAssist.MovementModes[MudAssist.Settings.TargetingMode].Equals("Combat")
-				|| (MudAssist.MovementModes[MudAssist.Settings.TargetingMode].Equals("Tank") && MudAssist.InCombat)))
+				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudSettings.Instance.TargetRangeMelee + Core.Player.CurrentTarget.CombatReach)
+				&& (MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Combat")
+				|| (MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank") && MudAssist.InCombat)))
 				|| (!MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= (float)MudAssist.Settings.FollowRangeMin
-				&& MudAssist.MovementModes[MudAssist.Settings.TargetingMode].Equals("Follow"))))
+				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= (float)MudSettings.Instance.FollowRangeMin
+				&& MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Follow"))))
 			{
 				newTarget = Core.Player.CurrentTarget;
 			}
-			else if (targetTanks.Count() > 0 && MudAssist.MovementModes[MudAssist.Settings.TargetingMode].Equals("Tank"))
+			else if (targetTanks.Count() > 0 && MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
 			{
 				newTarget = targetTanks.First();
 			}
@@ -229,22 +230,22 @@ namespace Mud.Helpers
 		{
 			GameObject newTarget = null;
 			IEnumerable<Character> targetTanks = MudAssist.GetVisiblePartyMembers().Where(p => JobHelper.IsTank(p)
-				&& p.Location.Distance3D(Core.Player.Location) >= (float)MudAssist.Settings.FollowRangeMin
-				&& Core.Player.Location.Distance3D(p.Location) <= (float)MudAssist.Settings.MaxTargetDistance);
+				&& p.Location.Distance3D(Core.Player.Location) >= (float)MudSettings.Instance.FollowRangeMin
+				&& Core.Player.Location.Distance3D(p.Location) <= (float)MudSettings.Instance.MaxTargetDistance);
 			if (Core.Player.HasTarget
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudAssist.Settings.TargetRangeRanged + Core.Player.CurrentTarget.CombatReach)
-				&& Core.Player.Location.Distance3D(Core.Player.CurrentTarget.Location) <= (float)MudAssist.Settings.MaxTargetDistance
+				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudSettings.Instance.TargetRangeRanged + Core.Player.CurrentTarget.CombatReach)
+				&& Core.Player.Location.Distance3D(Core.Player.CurrentTarget.Location) <= (float)MudSettings.Instance.MaxTargetDistance
 				&& ((MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudAssist.Settings.TargetRangeRanged + Core.Player.CurrentTarget.CombatReach)
-				&& (MudAssist.MovementModes[MudAssist.Settings.TargetingMode].Equals("Combat")
-				|| (MudAssist.MovementModes[MudAssist.Settings.TargetingMode].Equals("Tank") && MudAssist.InCombat)))
+				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudSettings.Instance.TargetRangeRanged + Core.Player.CurrentTarget.CombatReach)
+				&& (MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Combat")
+				|| (MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank") && MudAssist.InCombat)))
 				|| (!MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= (float)MudAssist.Settings.FollowRangeMin
-				&& MudAssist.MovementModes[MudAssist.Settings.TargetingMode].Equals("Follow"))))
+				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= (float)MudSettings.Instance.FollowRangeMin
+				&& MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Follow"))))
 			{
 				newTarget = Core.Player.CurrentTarget;
 			}
-			else if (targetTanks.Count() > 0 && MudAssist.MovementModes[MudAssist.Settings.TargetingMode].Equals("Tank"))
+			else if (targetTanks.Count() > 0 && MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
 			{
 				newTarget = targetTanks.First();
 			}
