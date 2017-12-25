@@ -121,16 +121,20 @@ namespace Mud.Settings.Forms
                 false, DataSourceUpdateMode.OnPropertyChanged);
             cbxEnableHotkeyMovementMode.DataBindings.Add("Checked", MudSettings.Instance, "EnableHotkeyMovementMode",
                 false, DataSourceUpdateMode.OnPropertyChanged);
-            cmbHotkeyModifierPause.DataSource = MudAssist.ModifierKeyStrings;
+            cmbHotkeyModifierPause.Items.Clear();
+            cmbHotkeyModifierPause.Items.AddRange(MudAssist.ModifierKeyStrings);
             cmbHotkeyModifierPause.DataBindings.Add("SelectedIndex", MudSettings.Instance, "HotkeyModifierPause",
                 false, DataSourceUpdateMode.OnPropertyChanged);
-            cmbHotkeyModifierTargetMode.DataSource = MudAssist.ModifierKeyStrings;
+            cmbHotkeyModifierTargetMode.Items.Clear();
+            cmbHotkeyModifierTargetMode.Items.AddRange(MudAssist.ModifierKeyStrings);
             cmbHotkeyModifierTargetMode.DataBindings.Add("SelectedIndex", MudSettings.Instance, "HotkeyModifierTargetMode",
                 false, DataSourceUpdateMode.OnPropertyChanged);
-            cmbHotkeyModifierToogleMovement.DataSource = MudAssist.ModifierKeyStrings;
+            cmbHotkeyModifierToogleMovement.Items.Clear();
+            cmbHotkeyModifierToogleMovement.Items.AddRange(MudAssist.ModifierKeyStrings);
             cmbHotkeyModifierToogleMovement.DataBindings.Add("SelectedIndex", MudSettings.Instance, "HotkeyModifierToogleMovement",
                 false, DataSourceUpdateMode.OnPropertyChanged);
-            cmbHotkeyModifierMovementMode.DataSource = MudAssist.ModifierKeyStrings;
+            cmbHotkeyModifierMovementMode.Items.Clear();
+            cmbHotkeyModifierMovementMode.Items.AddRange(MudAssist.ModifierKeyStrings);
             cmbHotkeyModifierMovementMode.DataBindings.Add("SelectedIndex", MudSettings.Instance, "HotkeyModifierMovementMode",
                 false, DataSourceUpdateMode.OnPropertyChanged);
             tbxHotkeyPause.DataBindings.Add("Text", MudSettings.Instance, "HotkeyPause",
