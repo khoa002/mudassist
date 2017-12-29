@@ -1,13 +1,14 @@
-﻿using ff14bot;
+﻿using System;
+using System.Windows.Forms;
+using System.Windows.Media;
+using ff14bot;
 using ff14bot.Behavior;
 using ff14bot.Enums;
 using ff14bot.Helpers;
 using ff14bot.Managers;
 using Mud.Helpers;
 using Mud.Properties;
-using System;
-using System.Windows.Forms;
-using System.Windows.Media;
+using Color = System.Drawing.Color;
 
 namespace Mud.Settings.Forms
 {
@@ -28,7 +29,7 @@ namespace Mud.Settings.Forms
 
         private void MudSettingsForm_Load(object sender, EventArgs e)
         {
-            t = new Timer { Interval = 1000 };
+            t = new Timer {Interval = 1000};
             t.Tick += OnTickTimer;
             try
             {
@@ -37,26 +38,47 @@ namespace Mud.Settings.Forms
                     if (!t.Enabled) t.Enabled = true;
                     t.Start();
                 }
+
                 //else
                 //{
                 //    if (t.Enabled) t.Enabled = false;
                 //    t.Stop();
                 //}
             }
-            catch (Exception ex) { Logging.Write(Colors.Brown, $"{ex}"); }
+            catch (Exception ex)
+            {
+                Logging.Write(Colors.Brown, $@"{ex}");
+            }
 
             TopMost = MudSettings.Instance.AlwaysOnTop;
 
             if (MudAssist.IsBeta)
-                Text = $"Mud Assist v{MudAssist.Version} {MudAssist.Beta}-{MudAssist.BetaVer} - Settings";
-            else
-                Text = $"Mud Assist v{MudAssist.Version} - Settings";
+                Text = $@"Mud Assist v{MudAssist.Version} {MudAssist.Beta}-{MudAssist.BetaVer} - Settings";
+            Text = $@"Mud Assist v{MudAssist.Version} - Settings";
 
             if (!CommonBehaviors.IsLoading) LoadCharInfo();
 
             UpdateCheckBoxes(null);
             UpdateStatus();
         }
+
+        #region Misc Events
+
+        private void OnTickTimer(object sender, EventArgs e)
+        {
+            if (MudAssist.IsStarted && !CommonBehaviors.IsLoading)
+                if (seconds >= 1 && seconds <= 10)
+                {
+                    t.Interval = seconds * 1000;
+                    LoadCharInfo();
+                }
+                else if (seconds == 0)
+                {
+                    t.Interval = 1000;
+                }
+        }
+
+        #endregion Misc Events
 
         #region Custom Methods
 
@@ -117,7 +139,8 @@ namespace Mud.Settings.Forms
                 false, DataSourceUpdateMode.OnPropertyChanged);
             cbxEnableHotkeyTargetMode.DataBindings.Add("Checked", MudSettings.Instance, "EnableHotkeyTargetMode",
                 false, DataSourceUpdateMode.OnPropertyChanged);
-            cbxEnableHotkeyToogleMovement.DataBindings.Add("Checked", MudSettings.Instance, "EnableHotkeyToogleMovement",
+            cbxEnableHotkeyToogleMovement.DataBindings.Add("Checked", MudSettings.Instance,
+                "EnableHotkeyToogleMovement",
                 false, DataSourceUpdateMode.OnPropertyChanged);
             cbxEnableHotkeyMovementMode.DataBindings.Add("Checked", MudSettings.Instance, "EnableHotkeyMovementMode",
                 false, DataSourceUpdateMode.OnPropertyChanged);
@@ -127,15 +150,18 @@ namespace Mud.Settings.Forms
                 false, DataSourceUpdateMode.OnPropertyChanged);
             cmbHotkeyModifierTargetMode.Items.Clear();
             cmbHotkeyModifierTargetMode.Items.AddRange(MudAssist.ModifierKeyStrings);
-            cmbHotkeyModifierTargetMode.DataBindings.Add("SelectedIndex", MudSettings.Instance, "HotkeyModifierTargetMode",
+            cmbHotkeyModifierTargetMode.DataBindings.Add("SelectedIndex", MudSettings.Instance,
+                "HotkeyModifierTargetMode",
                 false, DataSourceUpdateMode.OnPropertyChanged);
             cmbHotkeyModifierToogleMovement.Items.Clear();
             cmbHotkeyModifierToogleMovement.Items.AddRange(MudAssist.ModifierKeyStrings);
-            cmbHotkeyModifierToogleMovement.DataBindings.Add("SelectedIndex", MudSettings.Instance, "HotkeyModifierToogleMovement",
+            cmbHotkeyModifierToogleMovement.DataBindings.Add("SelectedIndex", MudSettings.Instance,
+                "HotkeyModifierToogleMovement",
                 false, DataSourceUpdateMode.OnPropertyChanged);
             cmbHotkeyModifierMovementMode.Items.Clear();
             cmbHotkeyModifierMovementMode.Items.AddRange(MudAssist.ModifierKeyStrings);
-            cmbHotkeyModifierMovementMode.DataBindings.Add("SelectedIndex", MudSettings.Instance, "HotkeyModifierMovementMode",
+            cmbHotkeyModifierMovementMode.DataBindings.Add("SelectedIndex", MudSettings.Instance,
+                "HotkeyModifierMovementMode",
                 false, DataSourceUpdateMode.OnPropertyChanged);
             tbxHotkeyPause.DataBindings.Add("Text", MudSettings.Instance, "HotkeyPause",
                 false, DataSourceUpdateMode.OnPropertyChanged);
@@ -183,27 +209,29 @@ namespace Mud.Settings.Forms
                 if (MudSettings.Instance.Paused)
                 {
                     _instance.tspPauseStatus.Text = "STOPPED";
-                    _instance.tspPauseStatus.ForeColor = System.Drawing.Color.Red;
+                    _instance.tspPauseStatus.ForeColor = Color.Red;
                 }
                 else
                 {
                     _instance.tspPauseStatus.Text = "RUNNING";
-                    _instance.tspPauseStatus.ForeColor = System.Drawing.Color.Green;
+                    _instance.tspPauseStatus.ForeColor = Color.Green;
                 }
 
                 if (MudSettings.Instance.AutoMove)
                 {
                     _instance.tspMovementStatus.Text = "+AMOVE";
-                    _instance.tspMovementStatus.ForeColor = System.Drawing.Color.Cyan;
+                    _instance.tspMovementStatus.ForeColor = Color.Cyan;
                 }
                 else
                 {
                     _instance.tspMovementStatus.Text = "-AMOVE";
-                    _instance.tspMovementStatus.ForeColor = System.Drawing.Color.RoyalBlue;
+                    _instance.tspMovementStatus.ForeColor = Color.RoyalBlue;
                 }
 
-                _instance.tspFollowModeStatus.Text = "M: " + MudAssist.MovementModes[MudSettings.Instance.TargetingMode].ToUpper();
-                _instance.tspTargetModeStatus.Text = "T: " + MudAssist.TargetingModes[MudSettings.Instance.TargetingMode].ToUpper();
+                _instance.tspFollowModeStatus.Text =
+                    "M: " + MudAssist.MovementModes[MudSettings.Instance.TargetingMode].ToUpper();
+                _instance.tspTargetModeStatus.Text =
+                    "T: " + MudAssist.TargetingModes[MudSettings.Instance.TargetingMode].ToUpper();
             }
         }
 
@@ -504,39 +532,37 @@ namespace Mud.Settings.Forms
 
         #endregion Custom Methods
 
-        #region Misc Events
-
-        private void OnTickTimer(object sender, EventArgs e)
-        {
-            if (MudAssist.IsStarted && !CommonBehaviors.IsLoading)
-            {
-                if (seconds >= 1 && seconds <= 10)
-                {
-                    t.Interval = seconds * 1000;
-                    LoadCharInfo();
-                }
-                else if (seconds == 0)
-                {
-                    t.Interval = 1000;
-                }
-            }
-        }
-
-        #endregion Misc Events
-
         #region CheckBox Events
 
-        private void OnCheckedEnableHotkeyMovementMode(object sender, EventArgs e) => UpdateCheckBoxes(sender);
+        private void OnCheckedEnableHotkeyMovementMode(object sender, EventArgs e)
+        {
+            UpdateCheckBoxes(sender);
+        }
 
-        private void OnCheckedEnableHotkeyTargetMode(object sender, EventArgs e) => UpdateCheckBoxes(sender);
+        private void OnCheckedEnableHotkeyTargetMode(object sender, EventArgs e)
+        {
+            UpdateCheckBoxes(sender);
+        }
 
-        private void OnCheckedEnableHotkeyUnPause(object sender, EventArgs e) => UpdateCheckBoxes(sender);
+        private void OnCheckedEnableHotkeyUnPause(object sender, EventArgs e)
+        {
+            UpdateCheckBoxes(sender);
+        }
 
-        private void OnCheckedEnableToogleMovement(object sender, EventArgs e) => UpdateCheckBoxes(sender);
+        private void OnCheckedEnableToogleMovement(object sender, EventArgs e)
+        {
+            UpdateCheckBoxes(sender);
+        }
 
-        private void OnCheckedAutoFace(object sender, EventArgs e) => GameSettingsManager.FaceTargetOnAction = cbxAutoFace.Checked;
+        private void OnCheckedAutoFace(object sender, EventArgs e)
+        {
+            GameSettingsManager.FaceTargetOnAction = cbxAutoFace.Checked;
+        }
 
-        private void OnCheckedHideCharName(object sender, EventArgs e) => tbxCharName.UseSystemPasswordChar = cbxCharHideName.Checked;
+        private void OnCheckedHideCharName(object sender, EventArgs e)
+        {
+            tbxCharName.UseSystemPasswordChar = cbxCharHideName.Checked;
+        }
 
         #endregion CheckBox Events
 
@@ -544,14 +570,17 @@ namespace Mud.Settings.Forms
 
         private void OnSelectedCombatRoutine(object sender, EventArgs e)
         {
-            string selected = (sender as ComboBox).Items[cmbCombatRoutines.SelectedIndex].ToString();
+            var selected = (sender as ComboBox).Items[cmbCombatRoutines.SelectedIndex].ToString();
             if (selected.Equals(RoutineManager.Current.Name)) return;
             RoutineManager.Current.ShutDown();
             RoutineManager.PreferedRoutine = (sender as ComboBox).Items[cmbCombatRoutines.SelectedIndex].ToString();
             RoutineManager.PickRoutine();
         }
 
-        private void OnSelectedNavigationProvider(object sender, EventArgs e) =>  MudAssist.UpdateNavigationProvider();
+        private void OnSelectedNavigationProvider(object sender, EventArgs e)
+        {
+            MudAssist.UpdateNavigationProvider();
+        }
 
         #endregion ComboBox Events
     }

@@ -1,8 +1,8 @@
-﻿using ff14bot.Helpers;
-using Newtonsoft.Json;
+﻿using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
-using ff14bot.Managers;
+using ff14bot.Helpers;
+using Newtonsoft.Json;
 
 namespace Mud.Settings
 {
@@ -10,15 +10,18 @@ namespace Mud.Settings
     {
         private static MudSettings _settings;
 
-        public static MudSettings Instance => _settings ?? (_settings = new MudSettings("MudAssist"));
-
         private MudSettings(string filename) : base(Path.Combine(CharacterSettingsDirectory, filename + ".json"))
-        {}
+        {
+        }
+
+        public static MudSettings Instance => _settings ?? (_settings = new MudSettings("MudAssist"));
 
         #region Char Info
 
         private bool _hideName;
-        [JsonProperty("HideName"), DefaultValue(false)]
+
+        [JsonProperty("HideName")]
+        [DefaultValue(false)]
         public bool HideName
         {
             get => _hideName;
@@ -30,7 +33,9 @@ namespace Mud.Settings
         }
 
         private int _secondsBetweenUpdate;
-        [JsonProperty("SecondsBetweenUpdate"), DefaultValue(2)]
+
+        [JsonProperty("SecondsBetweenUpdate")]
+        [DefaultValue(2)]
         public int SecondsBetweenUpdate
         {
             get => _secondsBetweenUpdate;
@@ -46,7 +51,9 @@ namespace Mud.Settings
         #region Questing
 
         private bool _acceptQuests;
-        [JsonProperty("AcceptQuests"), DefaultValue(true)]
+
+        [JsonProperty("AcceptQuests")]
+        [DefaultValue(true)]
         public bool AcceptQuests
         {
             get => _acceptQuests;
@@ -58,7 +65,9 @@ namespace Mud.Settings
         }
 
         private bool _completeQuests;
-        [JsonProperty("CompleteQuests"), DefaultValue(true)]
+
+        [JsonProperty("CompleteQuests")]
+        [DefaultValue(true)]
         public bool CompleteQuests
         {
             get => _completeQuests;
@@ -70,7 +79,9 @@ namespace Mud.Settings
         }
 
         private bool _skipCutscenes;
-        [JsonProperty("SkipCutscenes"), DefaultValue(true)]
+
+        [JsonProperty("SkipCutscenes")]
+        [DefaultValue(true)]
         public bool SkipCutscenes
         {
             get => _skipCutscenes;
@@ -82,7 +93,9 @@ namespace Mud.Settings
         }
 
         private bool _talkToNpc;
-        [JsonProperty("TalkToNpc"), DefaultValue(true)]
+
+        [JsonProperty("TalkToNpc")]
+        [DefaultValue(true)]
         public bool TalkToNpc
         {
             get => _talkToNpc;
@@ -98,7 +111,9 @@ namespace Mud.Settings
         #region Sprint
 
         private bool _sprintInCombat;
-        [JsonProperty("SprintInCombat"), DefaultValue(false)]
+
+        [JsonProperty("SprintInCombat")]
+        [DefaultValue(false)]
         public bool SprintInCombat
         {
             get => _sprintInCombat;
@@ -110,7 +125,9 @@ namespace Mud.Settings
         }
 
         private bool _sprintInInstance;
-        [JsonProperty("SprintInInstance"), DefaultValue(false)]
+
+        [JsonProperty("SprintInInstance")]
+        [DefaultValue(false)]
         public bool SprintInInstance
         {
             get => _sprintInInstance;
@@ -122,7 +139,9 @@ namespace Mud.Settings
         }
 
         private bool _sprintOutOfCombat;
-        [JsonProperty("SprintOutOfCombat"), DefaultValue(true)]
+
+        [JsonProperty("SprintOutOfCombat")]
+        [DefaultValue(true)]
         public bool SprintOutOfCombat
         {
             get => _sprintOutOfCombat;
@@ -138,7 +157,9 @@ namespace Mud.Settings
         #region Routine
 
         private bool _combat;
-        [JsonProperty("Combat"), DefaultValue(true)]
+
+        [JsonProperty("Combat")]
+        [DefaultValue(true)]
         public bool Combat
         {
             get => _combat;
@@ -150,7 +171,9 @@ namespace Mud.Settings
         }
 
         private bool _combatBuff;
-        [JsonProperty("CombatBuff"), DefaultValue(true)]
+
+        [JsonProperty("CombatBuff")]
+        [DefaultValue(true)]
         public bool CombatBuff
         {
             get => _combatBuff;
@@ -162,7 +185,9 @@ namespace Mud.Settings
         }
 
         private bool _heal;
-        [JsonProperty("Heal"), DefaultValue(true)]
+
+        [JsonProperty("Heal")]
+        [DefaultValue(true)]
         public bool Heal
         {
             get => _heal;
@@ -174,7 +199,9 @@ namespace Mud.Settings
         }
 
         private bool _healOutOfCombat;
-        [JsonProperty("HealOutOfCombat"), DefaultValue(true)]
+
+        [JsonProperty("HealOutOfCombat")]
+        [DefaultValue(true)]
         public bool HealOutOfCombat
         {
             get => _healOutOfCombat;
@@ -186,7 +213,9 @@ namespace Mud.Settings
         }
 
         private bool _preCombatBuff;
-        [JsonProperty("PreCombatBuff"), DefaultValue(true)]
+
+        [JsonProperty("PreCombatBuff")]
+        [DefaultValue(true)]
         public bool PreCombatBuff
         {
             get => _preCombatBuff;
@@ -198,7 +227,9 @@ namespace Mud.Settings
         }
 
         private bool _pull;
-        [JsonProperty("Pull"), DefaultValue(true)]
+
+        [JsonProperty("Pull")]
+        [DefaultValue(true)]
         public bool Pull
         {
             get => _pull;
@@ -210,7 +241,9 @@ namespace Mud.Settings
         }
 
         private bool _pullBuff;
-        [JsonProperty("PullBuff"), DefaultValue(true)]
+
+        [JsonProperty("PullBuff")]
+        [DefaultValue(true)]
         public bool PullBuff
         {
             get => _pullBuff;
@@ -222,7 +255,9 @@ namespace Mud.Settings
         }
 
         private bool _rest;
-        [JsonProperty("Rest"), DefaultValue(true)]
+
+        [JsonProperty("Rest")]
+        [DefaultValue(true)]
         public bool Rest
         {
             get => _rest;
@@ -238,7 +273,9 @@ namespace Mud.Settings
         #region Hotkey
 
         private bool _enableHotkeyMovementMode;
-        [JsonProperty("EnableHotkeyMovementMode"), DefaultValue(false)]
+
+        [JsonProperty("EnableHotkeyMovementMode")]
+        [DefaultValue(false)]
         public bool EnableHotkeyMovementMode
         {
             get => _enableHotkeyMovementMode;
@@ -250,7 +287,9 @@ namespace Mud.Settings
         }
 
         private bool _enableHotkeyPause;
-        [JsonProperty("EnableHotkeyPause"), DefaultValue(false)]
+
+        [JsonProperty("EnableHotkeyPause")]
+        [DefaultValue(false)]
         public bool EnableHotkeyPause
         {
             get => _enableHotkeyPause;
@@ -262,7 +301,9 @@ namespace Mud.Settings
         }
 
         private bool _enableHotkeyTargetMode;
-        [JsonProperty("EnableHotkeyTargetMode"), DefaultValue(false)]
+
+        [JsonProperty("EnableHotkeyTargetMode")]
+        [DefaultValue(false)]
         public bool EnableHotkeyTargetMode
         {
             get => _enableHotkeyTargetMode;
@@ -274,7 +315,9 @@ namespace Mud.Settings
         }
 
         private bool _enableHotkeyToogleMovement;
-        [JsonProperty("EnableHotkeyToogleMovement"), DefaultValue(false)]
+
+        [JsonProperty("EnableHotkeyToogleMovement")]
+        [DefaultValue(false)]
         public bool EnableHotkeyToogleMovement
         {
             get => _enableHotkeyToogleMovement;
@@ -286,7 +329,9 @@ namespace Mud.Settings
         }
 
         private int _hotkeyModifierMovementMode;
-        [JsonProperty("HotkeyModifierMovementMode"), DefaultValue(2)]
+
+        [JsonProperty("HotkeyModifierMovementMode")]
+        [DefaultValue(2)]
         public int HotkeyModifierMovementMode
         {
             get => _hotkeyModifierMovementMode;
@@ -298,7 +343,9 @@ namespace Mud.Settings
         }
 
         private int _hotkeyModifierPause;
-        [JsonProperty("HotkeyModifierPause"), DefaultValue(0)]
+
+        [JsonProperty("HotkeyModifierPause")]
+        [DefaultValue(0)]
         public int HotkeyModifierPause
         {
             get => _hotkeyModifierPause;
@@ -310,7 +357,9 @@ namespace Mud.Settings
         }
 
         private int _hotkeyModifierTargetMode;
-        [JsonProperty("HotkeyModifierTargetMode"), DefaultValue(2)]
+
+        [JsonProperty("HotkeyModifierTargetMode")]
+        [DefaultValue(2)]
         public int HotkeyModifierTargetMode
         {
             get => _hotkeyModifierTargetMode;
@@ -322,7 +371,9 @@ namespace Mud.Settings
         }
 
         private int _hotkeyModifierToogleMovement;
-        [JsonProperty("HotkeyModifierToogleMovement"), DefaultValue(2)]
+
+        [JsonProperty("HotkeyModifierToogleMovement")]
+        [DefaultValue(2)]
         public int HotkeyModifierToogleMovement
         {
             get => _hotkeyModifierToogleMovement;
@@ -334,7 +385,9 @@ namespace Mud.Settings
         }
 
         private string _hotkeyMovementMode;
-        [JsonProperty("HotkeyMovementMode"), DefaultValue("F")]
+
+        [JsonProperty("HotkeyMovementMode")]
+        [DefaultValue("F")]
         public string HotkeyMovementMode
         {
             get => _hotkeyMovementMode;
@@ -346,7 +399,9 @@ namespace Mud.Settings
         }
 
         private string _hotkeyPause;
-        [JsonProperty("HotkeyPause"), DefaultValue("Z")]
+
+        [JsonProperty("HotkeyPause")]
+        [DefaultValue("Z")]
         public string HotkeyPause
         {
             get => _hotkeyPause;
@@ -358,7 +413,9 @@ namespace Mud.Settings
         }
 
         private string _hotkeyTargetMode;
-        [JsonProperty("HotkeyTargetMode"), DefaultValue("X")]
+
+        [JsonProperty("HotkeyTargetMode")]
+        [DefaultValue("X")]
         public string HotkeyTargetMode
         {
             get => _hotkeyTargetMode;
@@ -370,7 +427,9 @@ namespace Mud.Settings
         }
 
         private string _hotkeyToogleMovement;
-        [JsonProperty("HotkeyToogleMovement"), DefaultValue("C")]
+
+        [JsonProperty("HotkeyToogleMovement")]
+        [DefaultValue("C")]
         public string HotkeyToogleMovement
         {
             get => _hotkeyToogleMovement;
@@ -386,7 +445,9 @@ namespace Mud.Settings
         #region Movement
 
         private bool _autoFaceTarget;
-        [JsonProperty("AutoFaceTarget"), DefaultValue(true)]
+
+        [JsonProperty("AutoFaceTarget")]
+        [DefaultValue(true)]
         public bool AutoFaceTarget
         {
             get => _autoFaceTarget;
@@ -398,7 +459,9 @@ namespace Mud.Settings
         }
 
         private bool _autoMove;
-        [JsonProperty("AutoMove"), DefaultValue(false)]
+
+        [JsonProperty("AutoMove")]
+        [DefaultValue(false)]
         public bool AutoMove
         {
             get => _autoMove;
@@ -410,7 +473,9 @@ namespace Mud.Settings
         }
 
         private int _followRangeMax;
-        [JsonProperty("FollowRangeMax"), DefaultValue(15)]
+
+        [JsonProperty("FollowRangeMax")]
+        [DefaultValue(15)]
         public int FollowRangeMax
         {
             get => _followRangeMax;
@@ -422,7 +487,9 @@ namespace Mud.Settings
         }
 
         private int _followRangeMin;
-        [JsonProperty("FollowRangeMin"), DefaultValue(8)]
+
+        [JsonProperty("FollowRangeMin")]
+        [DefaultValue(8)]
         public int FollowRangeMin
         {
             get => _followRangeMin;
@@ -434,7 +501,9 @@ namespace Mud.Settings
         }
 
         private int _maxTargetDistance;
-        [JsonProperty("MaxTargetDistance"), DefaultValue(50)]
+
+        [JsonProperty("MaxTargetDistance")]
+        [DefaultValue(50)]
         public int MaxTargetDistance
         {
             get => _maxTargetDistance;
@@ -445,9 +514,10 @@ namespace Mud.Settings
             }
         }
 
-        private System.Collections.Specialized.StringCollection _mobsToTarget;
+        private StringCollection _mobsToTarget;
+
         [JsonProperty("MobsToTarget")]
-        public System.Collections.Specialized.StringCollection MobsToTarget
+        public StringCollection MobsToTarget
         {
             get => _mobsToTarget;
             set
@@ -458,7 +528,9 @@ namespace Mud.Settings
         }
 
         private int _movementMode;
-        [JsonProperty("MovementMode"), DefaultValue(0)]
+
+        [JsonProperty("MovementMode")]
+        [DefaultValue(0)]
         public int MovementMode
         {
             get => _movementMode;
@@ -470,7 +542,9 @@ namespace Mud.Settings
         }
 
         private int _navigationProvider;
-        [JsonProperty("NavigationProvider"), DefaultValue(0)]
+
+        [JsonProperty("NavigationProvider")]
+        [DefaultValue(0)]
         public int NavigationProvider
         {
             get => _navigationProvider;
@@ -482,7 +556,9 @@ namespace Mud.Settings
         }
 
         private int _targetDistance;
-        [JsonProperty("TargetDistance"), DefaultValue(15)]
+
+        [JsonProperty("TargetDistance")]
+        [DefaultValue(15)]
         public int TargetDistance
         {
             get => _targetDistance;
@@ -494,7 +570,9 @@ namespace Mud.Settings
         }
 
         private int _targetingMode;
-        [JsonProperty("TargetingMode"), DefaultValue(0)]
+
+        [JsonProperty("TargetingMode")]
+        [DefaultValue(0)]
         public int TargetingMode
         {
             get => _targetingMode;
@@ -506,7 +584,9 @@ namespace Mud.Settings
         }
 
         private int _targetRangeMelee;
-        [JsonProperty("TargetRangeMelee"), DefaultValue(2)]
+
+        [JsonProperty("TargetRangeMelee")]
+        [DefaultValue(2)]
         public int TargetRangeMelee
         {
             get => _targetRangeMelee;
@@ -518,7 +598,9 @@ namespace Mud.Settings
         }
 
         private int _targetRangeRanged;
-        [JsonProperty("TargetRangeRanged"), DefaultValue(20)]
+
+        [JsonProperty("TargetRangeRanged")]
+        [DefaultValue(20)]
         public int TargetRangeRanged
         {
             get => _targetRangeRanged;
@@ -534,7 +616,9 @@ namespace Mud.Settings
         #region General
 
         private bool _alwaysOnTop;
-        [JsonProperty("AlwaysOnTop"), DefaultValue(false)]
+
+        [JsonProperty("AlwaysOnTop")]
+        [DefaultValue(false)]
         public bool AlwaysOnTop
         {
             get => _alwaysOnTop;
@@ -546,7 +630,9 @@ namespace Mud.Settings
         }
 
         private bool _executeWhileMoving;
-        [JsonProperty("ExecuteWhileMoving"), DefaultValue(true)]
+
+        [JsonProperty("ExecuteWhileMoving")]
+        [DefaultValue(true)]
         public bool ExecuteWhileMoving
         {
             get => _executeWhileMoving;
@@ -558,7 +644,9 @@ namespace Mud.Settings
         }
 
         private bool _paused;
-        [JsonProperty("Paused"), DefaultValue(false)]
+
+        [JsonProperty("Paused")]
+        [DefaultValue(false)]
         public bool Paused
         {
             get => _paused;
@@ -574,7 +662,9 @@ namespace Mud.Settings
         #region Overlay
 
         private bool _enableOverlay;
-        [JsonProperty("EnableOverlay"), DefaultValue(false)]
+
+        [JsonProperty("EnableOverlay")]
+        [DefaultValue(false)]
         public bool EnableOverlay
         {
             get => _enableOverlay;

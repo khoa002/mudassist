@@ -1,269 +1,312 @@
-﻿using Clio.Utilities;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Media;
+using Clio.Utilities;
 using ff14bot;
 using ff14bot.Helpers;
 using ff14bot.Managers;
 using ff14bot.Navigation;
 using ff14bot.Objects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Media;
 using Mud.Settings;
 
 namespace Mud.Helpers
 {
-	public class Waypoint
-	{
-		public bool IsHardPoint;
-		public Vector3 Location;
-		public string Name;
-		private static DateTime LastHardpoint = DateTime.Now;
+    public class Waypoint
+    {
+        private static DateTime LastHardpoint = DateTime.Now;
+        private readonly bool IsHardPoint;
+        private readonly string Name;
+        public Vector3 Location;
 
-		public Waypoint(GameObject obj)
-		{
-			bool hard = IsValid(obj.Location) && DateTime.Now.Subtract(LastHardpoint) > TimeSpan.FromSeconds(5);
-			if (hard) LastHardpoint = DateTime.Now;
-			Name = obj.Name;
-			Location = obj.Location;
-			IsHardPoint = hard;
-		}
+        public Waypoint(GameObject obj)
+        {
+            var hard = IsValid(obj.Location) && DateTime.Now.Subtract(LastHardpoint) > TimeSpan.FromSeconds(5);
+            if (hard) LastHardpoint = DateTime.Now;
 
-		public Waypoint(GameObject obj, bool hardPoint)
-		{
-			Name = obj.Name;
-			Location = obj.Location;
-			IsHardPoint = hardPoint;
-		}
+            Name = obj.Name;
+            Location = obj.Location;
+            IsHardPoint = hard;
+        }
 
-		public float Distance(Waypoint other) => (Location.Distance3D(other.Location));
+        public Waypoint(GameObject obj, bool hardPoint)
+        {
+            Name = obj.Name;
+            Location = obj.Location;
+            IsHardPoint = hardPoint;
+        }
 
-		public Waypoint Ground()
-		{
-			Vector3 rayStart = new Vector3(Location.X, Location.Y + 0.25f, Location.Z), rayEnd = new Vector3(Location.X, Location.Y - 10f, Location.Z), hit, distances;
-			WorldManager.Raycast(rayStart, rayEnd, out hit, out distances);
-			if (IsValid(hit)) Location = hit;
-			return this;
-		}
+        public float Distance(Waypoint other)
+        {
+            return Location.Distance3D(other.Location);
+        }
 
-		public bool InLineOfSight(Waypoint other) => InLineOfSight(other, 1) && InLineOfSight(other, 2) && InLineOfSight(other, 3);
-		public bool IsCloserThan(Waypoint other) => (Core.Player.Location.Distance3D(Location) < Core.Player.Location.Distance3D(other.Location));
-		public override string ToString() => Name + " - " + Location + " Hardpoint: " + IsHardPoint;
-		private static bool IsValid(Vector3 loc) => !(loc.X == 0 && loc.Y == 0 && loc.Z == 0);
+        public Waypoint Ground()
+        {
+            Vector3 rayStart = new Vector3(Location.X, Location.Y + 0.25f, Location.Z),
+                rayEnd = new Vector3(Location.X, Location.Y - 10f, Location.Z),
+                distances;
+            WorldManager.Raycast(rayStart, rayEnd, out var hit, out distances);
+            if (IsValid(hit)) Location = hit;
+            return this;
+        }
 
-		private bool InLineOfSight(Waypoint other, int offsetY)
-		{
-			Vector3 start = Core.Player.Location, end = other.Location, hit, distances;
-			start.Y = start.Y + offsetY;
-			end.Y = end.Y + offsetY;
-			WorldManager.Raycast(start, end, out hit, out distances);
-			return !IsValid(hit);
-		}
-	}
+        public bool InLineOfSight(Waypoint other)
+        {
+            return InLineOfSight(other, 1) && InLineOfSight(other, 2) && InLineOfSight(other, 3);
+        }
 
-	public class WaypointManager
-	{
-		public const int WAYPOINT_DISTANCE = 2;
-		public static bool IsNavigating;
-		private static GameObject _MoveTarget;
-		private static Queue<Waypoint> CurrentWaypoints = new Queue<Waypoint>();
+        public bool IsCloserThan(Waypoint other)
+        {
+            return Core.Player.Location.Distance3D(Location) < Core.Player.Location.Distance3D(other.Location);
+        }
 
-		public static Waypoint Next
-		{
-			get
-			{
-				if (CurrentWaypoints.Count == 0) return null;
-				Waypoint peek = CurrentWaypoints.Peek();
-				// Don't Skip Hardpoints
-				if (CurrentWaypoints.Count > 1)
-				{
-					Waypoint peek2 = CurrentWaypoints.ToArray()[1];
-					if (peek2.IsCloserThan(peek) && peek2.InLineOfSight(new Waypoint(Core.Player)))
-					{
-						Logging.Write(Colors.SaddleBrown, $@"[MudAssist] ==> Skipping Waypoint: {CurrentWaypoints.Dequeue()}");
-						return Next;
-					}
-				}
-				if (peek.Distance(new Waypoint(Core.Player)) > 0.25) return peek;
-				Logging.Write(Colors.SaddleBrown, $@"[MudAssist] ==> Reached Waypoint: {CurrentWaypoints.Dequeue()}");
-				return Next;
-			}
-		}
+        public override string ToString()
+        {
+            return Name + " - " + Location + " Hardpoint: " + IsHardPoint;
+        }
 
-		public static void TrackMelee()
-		{
-			GameObject moveTarget = GetMoveTargetMelee();
-			if (moveTarget != null)
-			{
-				if (CurrentWaypoints.Count > 0)
-				{
-					Waypoint lastWaypoint = CurrentWaypoints.Last();
-					Waypoint nextWaypoint = new Waypoint(moveTarget);
-					if (lastWaypoint.Distance(nextWaypoint) > WAYPOINT_DISTANCE) CurrentWaypoints.Enqueue(nextWaypoint.Ground());
-				}
-				else
-				{
-					Waypoint nextWaypoint = new Waypoint(moveTarget).Ground();
-					CurrentWaypoints.Enqueue(nextWaypoint);
-				}
-			}
-		}
+        private static bool IsValid(Vector3 loc)
+        {
+            return !(loc.X == 0 && loc.Y == 0 && loc.Z == 0);
+        }
 
-		public static void TrackRanged()
-		{
-			GameObject moveTarget = GetMoveTargetRanged();
-			if (moveTarget != null)
-			{
-				if (CurrentWaypoints.Count > 0)
-				{
-					Waypoint lastWaypoint = CurrentWaypoints.Last();
-					Waypoint nextWaypoint = new Waypoint(moveTarget);
-					if (lastWaypoint.Distance(nextWaypoint) > WAYPOINT_DISTANCE) CurrentWaypoints.Enqueue(nextWaypoint.Ground());
-				}
-				else
-				{
-					Waypoint nextWaypoint = new Waypoint(moveTarget).Ground();
-					CurrentWaypoints.Enqueue(nextWaypoint);
-				}
-			}
-		}
+        private static bool InLineOfSight(Waypoint other, int offsetY)
+        {
+            Vector3 start = Core.Player.Location, end = other.Location, hit, distances;
+            start.Y = start.Y + offsetY;
+            end.Y = end.Y + offsetY;
+            WorldManager.Raycast(start, end, out hit, out distances);
+            return !IsValid(hit);
+        }
+    }
 
-		// Needs Work
-		internal static bool IsStuck() => IsNavigating && (!MovementManager.IsMoving || MovementManager.IsMoving && MovementManager.Speed < 2);
+    public static class WaypointManager
+    {
+        private static readonly int WAYPOINT_DISTANCE = 2;
+        public static bool IsNavigating;
+        private static GameObject _MoveTarget;
+        private static readonly Queue<Waypoint> CurrentWaypoints = new Queue<Waypoint>();
 
-		internal static void MoveToNextMelee()
-		{
-			GameObject moveTarget = GetMoveTargetMelee();
-			if (GetMoveTargetMelee() != null
-				// Start Navigating If > Max range
-				&& ((!IsNavigating
-				&& Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudSettings.Instance.FollowRangeMax)
-				// Keep Navigating If > Min Range
-				|| (IsNavigating
-				&& (Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudSettings.Instance.FollowRangeMin))
-				|| (Core.Player.Location.Distance3D(moveTarget.Location) > ((float)MudSettings.Instance.TargetRangeMelee + moveTarget.CombatReach)
-				&& MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
-				&& MudAssist.InCombat)))
-			{
-				new Waypoint(Core.Player);
-				Waypoint next = Next;
-				// Use Supported Navigators If Enabled & > Some Yards From Next Waypoint OR Not In LOS Of Next Waypoint
-				{
-					Navigator.PlayerMover.MoveTowards(next.Location);
-				}
-			}
-			// Otherwise Clear Waypoints
-			else
-			{
-				CurrentWaypoints.Clear();
-			}
-		}
+        public static Waypoint Next
+        {
+            get
+            {
+                if (CurrentWaypoints.Count == 0) return null;
+                var peek = CurrentWaypoints.Peek();
+                // Don't Skip Hardpoints
+                if (CurrentWaypoints.Count > 1)
+                {
+                    var peek2 = CurrentWaypoints.ToArray()[1];
+                    if (peek2.IsCloserThan(peek) && peek2.InLineOfSight(new Waypoint(Core.Player)))
+                    {
+                        Logging.Write(Colors.SaddleBrown,
+                            $@"[MudAssist] ==> Skipping Waypoint: {CurrentWaypoints.Dequeue()}");
+                        return Next;
+                    }
+                }
 
-		internal static void MoveToNextRanged()
-		{
-			GameObject moveTarget = GetMoveTargetRanged();
-			if (GetMoveTargetRanged() != null
-				// Start Navigating If > Max range
-				&& ((!IsNavigating
-				&& Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudSettings.Instance.FollowRangeMax)
-				// Keep Navigating If > Min Range
-				|| (IsNavigating
-				&& (Core.Player.Location.Distance3D(moveTarget.Location) > (float)MudSettings.Instance.FollowRangeMin))
-				|| (Core.Player.Location.Distance3D(moveTarget.Location) > ((float)MudSettings.Instance.TargetRangeRanged + moveTarget.CombatReach)
-				&& MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
-				&& MudAssist.InCombat)))
-			{
-				new Waypoint(Core.Player);
-				Waypoint next = Next;
-				// Use Supported Navigators If Enabled & > Some Yards From Next Waypoint OR Not In LOS Of Next Waypoint
-				{
-					Navigator.PlayerMover.MoveTowards(next.Location);
-				}
-			}
-			// Otherwise Clear Waypoints
-			else
-			{
-				CurrentWaypoints.Clear();
-			}
-		}
+                if (peek.Distance(new Waypoint(Core.Player)) > 0.25) return peek;
+                Logging.Write(Colors.SaddleBrown, $@"[MudAssist] ==> Reached Waypoint: {CurrentWaypoints.Dequeue()}");
+                return Next;
+            }
+        }
 
-		internal static void StopNavigating()
-		{
-			Logging.Write(Colors.SaddleBrown, $"[MudAssist] ==> Stopping, no Waypoint");
-			CurrentWaypoints.Clear();
-			Navigator.PlayerMover.MoveStop();
-		}
+        public static void TrackMelee()
+        {
+            var moveTarget = GetMoveTargetMelee();
+            if (moveTarget != null)
+                if (CurrentWaypoints.Count > 0)
+                {
+                    var lastWaypoint = CurrentWaypoints.Last();
+                    var nextWaypoint = new Waypoint(moveTarget);
+                    if (lastWaypoint.Distance(nextWaypoint) > WAYPOINT_DISTANCE)
+                        CurrentWaypoints.Enqueue(nextWaypoint.Ground());
+                }
+                else
+                {
+                    var nextWaypoint = new Waypoint(moveTarget).Ground();
+                    CurrentWaypoints.Enqueue(nextWaypoint);
+                }
+        }
 
-		private static GameObject GetMoveTargetMelee()
-		{
-			GameObject newTarget = null;
-			IEnumerable<Character> targetTanks = MudAssist.GetVisiblePartyMembers().Where(p => JobHelper.IsTank(p)
-				&& p.Location.Distance3D(Core.Player.Location) >= (float)MudSettings.Instance.FollowRangeMin
-				&& Core.Player.Location.Distance3D(p.Location) <= (float)MudSettings.Instance.MaxTargetDistance);
-			if (Core.Player.HasTarget
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudSettings.Instance.TargetRangeMelee + Core.Player.CurrentTarget.CombatReach)
-				&& Core.Player.Location.Distance3D(Core.Player.CurrentTarget.Location) <= (float)MudSettings.Instance.MaxTargetDistance
-				&& ((MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudSettings.Instance.TargetRangeMelee + Core.Player.CurrentTarget.CombatReach)
-				&& (MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Combat")
-				|| (MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank") && MudAssist.InCombat)))
-				|| (!MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= (float)MudSettings.Instance.FollowRangeMin
-				&& MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Follow"))))
-			{
-				newTarget = Core.Player.CurrentTarget;
-			}
-			else if (targetTanks.Count() > 0 && MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
-			{
-				newTarget = targetTanks.First();
-			}
+        public static void TrackRanged()
+        {
+            var moveTarget = GetMoveTargetRanged();
+            if (moveTarget != null)
+                if (CurrentWaypoints.Count > 0)
+                {
+                    var lastWaypoint = CurrentWaypoints.Last();
+                    var nextWaypoint = new Waypoint(moveTarget);
+                    if (lastWaypoint.Distance(nextWaypoint) > WAYPOINT_DISTANCE)
+                        CurrentWaypoints.Enqueue(nextWaypoint.Ground());
+                }
+                else
+                {
+                    var nextWaypoint = new Waypoint(moveTarget).Ground();
+                    CurrentWaypoints.Enqueue(nextWaypoint);
+                }
+        }
 
-			if (_MoveTarget != newTarget)
-			{
-				GameObject oldTarget = _MoveTarget;
-				_MoveTarget = newTarget;
-				OnTargetChanged(oldTarget, newTarget);
-			}
-			return _MoveTarget;
-		}
+        // Needs Work
+        internal static bool IsStuck()
+        {
+            return IsNavigating && (!MovementManager.IsMoving || MovementManager.IsMoving && MovementManager.Speed < 2);
+        }
 
-		private static GameObject GetMoveTargetRanged()
-		{
-			GameObject newTarget = null;
-			IEnumerable<Character> targetTanks = MudAssist.GetVisiblePartyMembers().Where(p => JobHelper.IsTank(p)
-				&& p.Location.Distance3D(Core.Player.Location) >= (float)MudSettings.Instance.FollowRangeMin
-				&& Core.Player.Location.Distance3D(p.Location) <= (float)MudSettings.Instance.MaxTargetDistance);
-			if (Core.Player.HasTarget
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudSettings.Instance.TargetRangeRanged + Core.Player.CurrentTarget.CombatReach)
-				&& Core.Player.Location.Distance3D(Core.Player.CurrentTarget.Location) <= (float)MudSettings.Instance.MaxTargetDistance
-				&& ((MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= ((float)MudSettings.Instance.TargetRangeRanged + Core.Player.CurrentTarget.CombatReach)
-				&& (MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Combat")
-				|| (MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank") && MudAssist.InCombat)))
-				|| (!MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
-				&& Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >= (float)MudSettings.Instance.FollowRangeMin
-				&& MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Follow"))))
-			{
-				newTarget = Core.Player.CurrentTarget;
-			}
-			else if (targetTanks.Count() > 0 && MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
-			{
-				newTarget = targetTanks.First();
-			}
+        internal static void MoveToNextMelee()
+        {
+            var moveTarget = GetMoveTargetMelee();
+            if (GetMoveTargetMelee() != null
+                // Start Navigating If > Max range
+                && (!IsNavigating
+                    && Core.Player.Location.Distance3D(moveTarget.Location) > MudSettings.Instance.FollowRangeMax
+                    // Keep Navigating If > Min Range
+                    || IsNavigating
+                    && Core.Player.Location.Distance3D(moveTarget.Location) > MudSettings.Instance.FollowRangeMin
+                    || Core.Player.Location.Distance3D(moveTarget.Location) >
+                    MudSettings.Instance.TargetRangeMelee + moveTarget.CombatReach
+                    && MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
+                    && MudAssist.InCombat))
+            {
+                new Waypoint(Core.Player);
+                var next = Next;
+                // Use Supported Navigators If Enabled & > Some Yards From Next Waypoint OR Not In LOS Of Next Waypoint
+                {
+                    Navigator.PlayerMover.MoveTowards(next.Location);
+                }
+            }
+            // Otherwise Clear Waypoints
+            else
+            {
+                CurrentWaypoints.Clear();
+            }
+        }
 
-			if (_MoveTarget != newTarget)
-			{
-				GameObject oldTarget = _MoveTarget;
-				_MoveTarget = newTarget;
-				OnTargetChanged(oldTarget, newTarget);
-			}
-			return _MoveTarget;
-		}
+        internal static void MoveToNextRanged()
+        {
+            var moveTarget = GetMoveTargetRanged();
+            if (GetMoveTargetRanged() != null
+                // Start Navigating If > Max range
+                && (!IsNavigating
+                    && Core.Player.Location.Distance3D(moveTarget.Location) > MudSettings.Instance.FollowRangeMax
+                    // Keep Navigating If > Min Range
+                    || IsNavigating
+                    && Core.Player.Location.Distance3D(moveTarget.Location) > MudSettings.Instance.FollowRangeMin
+                    || Core.Player.Location.Distance3D(moveTarget.Location) >
+                    MudSettings.Instance.TargetRangeRanged + moveTarget.CombatReach
+                    && MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
+                    && MudAssist.InCombat))
+            {
+                new Waypoint(Core.Player);
+                var next = Next;
+                // Use Supported Navigators If Enabled & > Some Yards From Next Waypoint OR Not In LOS Of Next Waypoint
+                {
+                    Navigator.PlayerMover.MoveTowards(next.Location);
+                }
+            }
+            // Otherwise Clear Waypoints
+            else
+            {
+                CurrentWaypoints.Clear();
+            }
+        }
 
-		private static void OnTargetChanged(GameObject oldTarget, GameObject newTarget)
-		{
-			CurrentWaypoints.Clear();
-			if (JobHelper.IsMeleeDPS(Core.Player) || JobHelper.IsTank(Core.Player)) TrackMelee();
-			else if (JobHelper.IsHealer(Core.Player) || JobHelper.IsRangedDPS(Core.Player)) TrackRanged();
-		}
-	}
+        internal static void StopNavigating()
+        {
+            Logging.Write(Colors.SaddleBrown, @"[MudAssist] ==> Stopping, no Waypoint");
+            CurrentWaypoints.Clear();
+            Navigator.PlayerMover.MoveStop();
+        }
+
+        private static GameObject GetMoveTargetMelee()
+        {
+            GameObject newTarget = null;
+            var targetTanks = MudAssist.GetVisiblePartyMembers().Where(p => JobHelper.IsTank(p)
+                                                                            && p.Location.Distance3D(Core.Player
+                                                                                .Location) >=
+                                                                            MudSettings.Instance.FollowRangeMin
+                                                                            && Core.Player.Location.Distance3D(
+                                                                                p.Location) <=
+                                                                            MudSettings.Instance
+                                                                                .MaxTargetDistance);
+            if (Core.Player.HasTarget
+                && Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >=
+                MudSettings.Instance.TargetRangeMelee + Core.Player.CurrentTarget.CombatReach
+                && Core.Player.Location.Distance3D(Core.Player.CurrentTarget.Location) <=
+                MudSettings.Instance.MaxTargetDistance
+                && (MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
+                    && Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >=
+                    MudSettings.Instance.TargetRangeMelee + Core.Player.CurrentTarget.CombatReach
+                    && (MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Combat")
+                        || MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank") &&
+                        MudAssist.InCombat)
+                    || !MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
+                    && Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >=
+                    MudSettings.Instance.FollowRangeMin
+                    && MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Follow")))
+                newTarget = Core.Player.CurrentTarget;
+            else if (targetTanks.Any() &&
+                     MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
+                newTarget = targetTanks.First();
+
+            if (_MoveTarget != newTarget)
+            {
+                var oldTarget = _MoveTarget;
+                _MoveTarget = newTarget;
+                OnTargetChanged(oldTarget, newTarget);
+            }
+
+            return _MoveTarget;
+        }
+
+        private static GameObject GetMoveTargetRanged()
+        {
+            GameObject newTarget = null;
+            var targetTanks = MudAssist.GetVisiblePartyMembers().Where(p => JobHelper.IsTank(p)
+                                                                            && p.Location.Distance3D(Core.Player
+                                                                                .Location) >=
+                                                                            MudSettings.Instance.FollowRangeMin
+                                                                            && Core.Player.Location.Distance3D(
+                                                                                p.Location) <=
+                                                                            MudSettings.Instance
+                                                                                .MaxTargetDistance);
+            if (Core.Player.HasTarget
+                && Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >=
+                MudSettings.Instance.TargetRangeRanged + Core.Player.CurrentTarget.CombatReach
+                && Core.Player.Location.Distance3D(Core.Player.CurrentTarget.Location) <=
+                MudSettings.Instance.MaxTargetDistance
+                && (MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
+                    && Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >=
+                    MudSettings.Instance.TargetRangeRanged + Core.Player.CurrentTarget.CombatReach
+                    && (MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Combat")
+                        || MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank") &&
+                        MudAssist.InCombat)
+                    || !MudAssist.IsValidEnemy(Core.Player.CurrentTarget)
+                    && Core.Player.CurrentTarget.Location.Distance3D(Core.Player.Location) >=
+                    MudSettings.Instance.FollowRangeMin
+                    && MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Follow")))
+                newTarget = Core.Player.CurrentTarget;
+            else if (targetTanks.Any() &&
+                     MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
+                newTarget = targetTanks.First();
+
+            if (_MoveTarget != newTarget)
+            {
+                var oldTarget = _MoveTarget;
+                _MoveTarget = newTarget;
+                OnTargetChanged(oldTarget, newTarget);
+            }
+
+            return _MoveTarget;
+        }
+
+        private static void OnTargetChanged(GameObject oldTarget, GameObject newTarget)
+        {
+            CurrentWaypoints.Clear();
+            if (JobHelper.IsMeleeDPS(Core.Player) || JobHelper.IsTank(Core.Player)) TrackMelee();
+            else if (JobHelper.IsHealer(Core.Player) || JobHelper.IsRangedDPS(Core.Player))
+                TrackRanged();
+        }
+    }
 }

@@ -1,19 +1,17 @@
 ﻿namespace Mud.Helpers
 {
-	public class StringValue
-	{
-		private string _value;
+    public class StringValue
+    {
+        public StringValue(string s)
+        {
+            Name = s;
+        }
 
-		public StringValue(string s)
-		{
-			_value = s;
-		}
+        public StringValue()
+        {
+            Name = "";
+        }
 
-		public StringValue()
-		{
-			_value = "";
-		}
-
-		public string Name { get { return _value; } set { _value = value; } }
-	}
+        public string Name { get; set; }
+    }
 }
