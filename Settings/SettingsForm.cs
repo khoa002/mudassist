@@ -14,10 +14,9 @@ namespace Mud.Settings.Forms
 {
     public partial class SettingsForm : Form
     {
+        private const int Seconds = 0;
         private static SettingsForm _instance;
-
-        private int seconds;
-        private Timer t;
+        private Timer _t;
 
         public SettingsForm()
         {
@@ -29,21 +28,15 @@ namespace Mud.Settings.Forms
 
         private void MudSettingsForm_Load(object sender, EventArgs e)
         {
-            t = new Timer {Interval = 1000};
-            t.Tick += OnTickTimer;
+            _t = new Timer {Interval = 1000};
+            _t.Tick += OnTickTimer;
             try
             {
                 if (!CommonBehaviors.IsLoading)
                 {
-                    if (!t.Enabled) t.Enabled = true;
-                    t.Start();
+                    if (!_t.Enabled) _t.Enabled = true;
+                    _t.Start();
                 }
-
-                //else
-                //{
-                //    if (t.Enabled) t.Enabled = false;
-                //    t.Stop();
-                //}
             }
             catch (Exception ex)
             {
@@ -57,7 +50,6 @@ namespace Mud.Settings.Forms
             Text = $@"Mud Assist v{MudAssist.Version} - Settings";
 
             if (!CommonBehaviors.IsLoading) LoadCharInfo();
-
             UpdateCheckBoxes(null);
             UpdateStatus();
         }
@@ -66,16 +58,14 @@ namespace Mud.Settings.Forms
 
         private void OnTickTimer(object sender, EventArgs e)
         {
-            if (MudAssist.IsStarted && !CommonBehaviors.IsLoading)
-                if (seconds >= 1 && seconds <= 10)
-                {
-                    t.Interval = seconds * 1000;
-                    LoadCharInfo();
-                }
-                else if (seconds == 0)
-                {
-                    t.Interval = 1000;
-                }
+            if (!MudAssist.IsStarted || CommonBehaviors.IsLoading) return;
+            if (Seconds >= 1 && Seconds <= 10)
+            {
+                _t.Interval = Seconds * 1000;
+                LoadCharInfo();
+            }
+
+            _t.Interval = 1000;
         }
 
         #endregion Misc Events
@@ -208,30 +198,30 @@ namespace Mud.Settings.Forms
             {
                 if (MudSettings.Instance.Paused)
                 {
-                    _instance.tspPauseStatus.Text = "STOPPED";
+                    _instance.tspPauseStatus.Text = @"STOPPED";
                     _instance.tspPauseStatus.ForeColor = Color.Red;
                 }
                 else
                 {
-                    _instance.tspPauseStatus.Text = "RUNNING";
+                    _instance.tspPauseStatus.Text = @"RUNNING";
                     _instance.tspPauseStatus.ForeColor = Color.Green;
                 }
 
                 if (MudSettings.Instance.AutoMove)
                 {
-                    _instance.tspMovementStatus.Text = "+AMOVE";
+                    _instance.tspMovementStatus.Text = @"+AMOVE";
                     _instance.tspMovementStatus.ForeColor = Color.Cyan;
                 }
                 else
                 {
-                    _instance.tspMovementStatus.Text = "-AMOVE";
+                    _instance.tspMovementStatus.Text = @"-AMOVE";
                     _instance.tspMovementStatus.ForeColor = Color.RoyalBlue;
                 }
 
                 _instance.tspFollowModeStatus.Text =
-                    "M: " + MudAssist.MovementModes[MudSettings.Instance.TargetingMode].ToUpper();
+                    @"M: " + MudAssist.MovementModes[MudSettings.Instance.TargetingMode].ToUpper();
                 _instance.tspTargetModeStatus.Text =
-                    "T: " + MudAssist.TargetingModes[MudSettings.Instance.TargetingMode].ToUpper();
+                    @"T: " + MudAssist.TargetingModes[MudSettings.Instance.TargetingMode].ToUpper();
             }
         }
 
@@ -239,35 +229,35 @@ namespace Mud.Settings.Forms
         {
             #region General Stats
 
-            tbxCharName.Text = $"Name : {JobHelper.NAME}";
-            tbxCharJobNameLevel.Text = $"Job : {JobHelper.JOB} / Level : {JobHelper.LEVEL}";
+            tbxCharName.Text = $@"Name : {JobHelper.Name}";
+            tbxCharJobNameLevel.Text = $@"Job : {JobHelper.Job} / Level : {JobHelper.Level}";
 
-            tbxCharHP.Text = $"{JobHelper.CURHP}/{JobHelper.MAXHP}";
-            tbxCharTP.Text = $"{JobHelper.CURTP}/{JobHelper.MAXTP}";
+            tbxCharHP.Text = $@"{JobHelper.Curhp}/{JobHelper.Maxhp}";
+            tbxCharTP.Text = $@"{JobHelper.Curtp}/{JobHelper.Maxtp}";
 
-            tbxCharHPPerc.Text = $"{JobHelper.CURHPPERC}/100 %";
-            tbxCharTPPerc.Text = $"{JobHelper.CURTPPERC}/100 %";
+            tbxCharHPPerc.Text = $@"{JobHelper.Curhpperc}/100 %";
+            tbxCharTPPerc.Text = $@"{JobHelper.Curtpperc}/100 %";
 
-            tbxCharStrength.Text = $"STR : {JobHelper.STR}";
-            tbxCharDexterity.Text = $"DEX : {JobHelper.DEX}";
-            tbxCharVitality.Text = $"VIT : {JobHelper.VIT}";
-            tbxCharIntelligence.Text = $"INT : {JobHelper.INT}";
-            tbxCharMind.Text = $"MND : {JobHelper.MND}";
+            tbxCharStrength.Text = $@"STR : {JobHelper.Str}";
+            tbxCharDexterity.Text = $@"DEX : {JobHelper.Dex}";
+            tbxCharVitality.Text = $@"VIT : {JobHelper.Vit}";
+            tbxCharIntelligence.Text = $@"INT : {JobHelper.Int}";
+            tbxCharMind.Text = $@"MND : {JobHelper.Mnd}";
 
-            tbxCharFireResistance.Text = $"{JobHelper.FIRE}";
-            tbxCharIceResistance.Text = $"{JobHelper.ICE}";
-            tbxCharWindResistance.Text = $"{JobHelper.WIND}";
-            tbxCharEarthResistance.Text = $"{JobHelper.EARTH}";
-            tbxCharLightningResistance.Text = $"{JobHelper.LIGHTINING}";
-            tbxCharWaterResistance.Text = $"{JobHelper.WATER}";
+            tbxCharFireResistance.Text = $@"{JobHelper.Fire}";
+            tbxCharIceResistance.Text = $@"{JobHelper.Ice}";
+            tbxCharWindResistance.Text = $@"{JobHelper.Wind}";
+            tbxCharEarthResistance.Text = $@"{JobHelper.Earth}";
+            tbxCharLightningResistance.Text = $@"{JobHelper.Lightining}";
+            tbxCharWaterResistance.Text = $@"{JobHelper.Water}";
 
-            tbxCharCriticalHit.Text = $"CRIT : {JobHelper.CRIT}";
-            tbxCharDirectHit.Text = $"DHIT : {JobHelper.DHIT}";
-            tbxCharDefense.Text = $"DEF : {JobHelper.DEF}";
-            tbxCharMagicDefense.Text = $"MDEF : {JobHelper.MDEF}";
+            tbxCharCriticalHit.Text = $@"CRIT : {JobHelper.Crit}";
+            tbxCharDirectHit.Text = $@"DHIT : {JobHelper.Dhit}";
+            tbxCharDefense.Text = $@"DEF : {JobHelper.Def}";
+            tbxCharMagicDefense.Text = $@"MDEF : {JobHelper.Mdef}";
 
-            tbxCharAttackPower.Text = $"ATK : {JobHelper.ATK}";
-            tbxCharSkillSpeed.Text = $"SPD : {JobHelper.PSPD}";
+            tbxCharAttackPower.Text = $@"ATK : {JobHelper.Atk}";
+            tbxCharSkillSpeed.Text = $@"SPD : {JobHelper.Pspd}";
 
             #endregion General Stats
 
@@ -426,59 +416,59 @@ namespace Mud.Settings.Forms
 
             if (JobHelper.IsDoH(Core.Player))
             {
-                lblCharMP_CP_GP.Text = "CP";
-                tbxCharMP_CP_GP.Text = $"{JobHelper.CURCP}/{JobHelper.MAXCP}";
-                tbxCharMP_CP_GPPerc.Text = $"{JobHelper.CURCPPERC}/100 %";
-                gbxCharExtra.Text = "Craft";
-                tbxCharAttackMagicPotency.Text = $"CSM : {JobHelper.CSM}";
-                tbxCharHealingMagicPotency.Text = $"CTL : {JobHelper.CTL}";
+                lblCharMP_CP_GP.Text = @"CP";
+                tbxCharMP_CP_GP.Text = $@"{JobHelper.Curcp}/{JobHelper.Maxcp}";
+                tbxCharMP_CP_GPPerc.Text = $@"{JobHelper.Curcpperc}/100 %";
+                gbxCharExtra.Text = @"Craft";
+                tbxCharAttackMagicPotency.Text = $@"CSM : {JobHelper.Csm}";
+                tbxCharHealingMagicPotency.Text = $@"CTL : {JobHelper.Ctl}";
                 gbxCharRole.Visible = false;
                 tbxCharSpellSpeed.Visible = false;
                 gbxCharExtra.Visible = false;
             }
             else if (JobHelper.IsDoL(Core.Player))
             {
-                lblCharMP_CP_GP.Text = "GP";
-                tbxCharMP_CP_GP.Text = $"{JobHelper.CURGP}/{JobHelper.MAXGP}";
-                tbxCharMP_CP_GPPerc.Text = $"{JobHelper.CURGPPERC}/100 %";
-                gbxCharExtra.Text = "Gather";
-                tbxCharAttackMagicPotency.Text = $"GTH : {JobHelper.GTH}";
-                tbxCharHealingMagicPotency.Text = $"PRT : {JobHelper.PRT}";
+                lblCharMP_CP_GP.Text = @"GP";
+                tbxCharMP_CP_GP.Text = $@"{JobHelper.Curgp}/{JobHelper.Maxgp}";
+                tbxCharMP_CP_GPPerc.Text = $@"{JobHelper.Curgpperc}/100 %";
+                gbxCharExtra.Text = @"Gather";
+                tbxCharAttackMagicPotency.Text = $@"GTH : {JobHelper.Gth}";
+                tbxCharHealingMagicPotency.Text = $@"PRT : {JobHelper.Prt}";
                 gbxCharRole.Visible = false;
                 tbxCharSpellSpeed.Visible = false;
                 gbxCharExtra.Visible = false;
             }
             else
             {
-                lblCharMP_CP_GP.Text = "MP";
-                tbxCharMP_CP_GP.Text = $"{JobHelper.CURMP}/{JobHelper.MAXMP}";
-                tbxCharMP_CP_GPPerc.Text = $"{JobHelper.CURMPPERC}/100 %";
+                lblCharMP_CP_GP.Text = @"MP";
+                tbxCharMP_CP_GP.Text = $@"{JobHelper.Curmp}/{JobHelper.Maxmp}";
+                tbxCharMP_CP_GPPerc.Text = $@"{JobHelper.Curmpperc}/100 %";
                 gbxCharExtra.Visible = true;
-                gbxCharExtra.Text = "Mental";
+                gbxCharExtra.Text = @"Mental";
                 tbxCharSpellSpeed.Visible = true;
-                tbxCharAttackMagicPotency.Text = $"AMP : {JobHelper.AMP}";
-                tbxCharHealingMagicPotency.Text = $"HMP : {JobHelper.HMP}";
+                tbxCharAttackMagicPotency.Text = $@"AMP : {JobHelper.Amp}";
+                tbxCharHealingMagicPotency.Text = $@"HMP : {JobHelper.Hmp}";
                 gbxCharRole.Visible = true;
-                tbxCharSpellSpeed.Text = $"SPD : {JobHelper.MSPD}";
-                tbxCharTenacity.Text = $"TNC : {JobHelper.TNC}";
-                tbxCharPiety.Text = $"PTY : {JobHelper.PTY}";
+                tbxCharSpellSpeed.Text = $@"SPD : {JobHelper.Mspd}";
+                tbxCharTenacity.Text = $@"TNC : {JobHelper.Tnc}";
+                tbxCharPiety.Text = $@"PTY : {JobHelper.Pty}";
             }
 
             switch (Core.Player.GrandCompany)
             {
                 case GrandCompany.Twin_Adder:
                     ptbCharGrandCompany.Image = Resources.order_of_the_twin_adder;
-                    tbxCharGrandCompany.Text = "Order Of The Twin Adder";
+                    tbxCharGrandCompany.Text = @"Order Of The Twin Adder";
                     break;
 
                 case GrandCompany.Immortal_Flames:
                     ptbCharGrandCompany.Image = Resources.immortal_flames;
-                    tbxCharGrandCompany.Text = "Immortal Flames";
+                    tbxCharGrandCompany.Text = @"Immortal Flames";
                     break;
 
                 case GrandCompany.Maelstrom:
                     ptbCharGrandCompany.Image = Resources.maelstrom;
-                    tbxCharGrandCompany.Text = "Maelstrom";
+                    tbxCharGrandCompany.Text = @"Maelstrom";
                     break;
 
                 default:
@@ -570,10 +560,10 @@ namespace Mud.Settings.Forms
 
         private void OnSelectedCombatRoutine(object sender, EventArgs e)
         {
-            var selected = (sender as ComboBox).Items[cmbCombatRoutines.SelectedIndex].ToString();
-            if (selected.Equals(RoutineManager.Current.Name)) return;
+            var selected = (sender as ComboBox)?.Items[cmbCombatRoutines.SelectedIndex].ToString();
+            if (selected != null && selected.Equals(RoutineManager.Current.Name)) return;
             RoutineManager.Current.ShutDown();
-            RoutineManager.PreferedRoutine = (sender as ComboBox).Items[cmbCombatRoutines.SelectedIndex].ToString();
+            RoutineManager.PreferedRoutine = (sender as ComboBox)?.Items[cmbCombatRoutines.SelectedIndex].ToString();
             RoutineManager.PickRoutine();
         }
 

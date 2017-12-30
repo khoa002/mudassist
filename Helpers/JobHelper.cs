@@ -4,54 +4,54 @@ using ff14bot.Objects;
 
 namespace Mud.Helpers
 {
-    public class JobHelper
+    public static class JobHelper
     {
         #region Stats
 
-        public static readonly string AMP = Core.Player.Stats.AttackMagicPotency.ToString();
-        public static readonly string ATK = Core.Player.Stats.AttackPower.ToString();
-        public static readonly string CRIT = Core.Player.Stats.CriticalHit.ToString();
-        public static readonly string CSM = Core.Player.Stats.Craftsmanship.ToString();
-        public static readonly string CTL = Core.Player.Stats.Control.ToString();
-        public static readonly string CURCP = Core.Player.CurrentCP.ToString();
-        public static readonly string CURCPPERC = Core.Player.CurrentCPPercent.ToString("0.#");
-        public static readonly string CURGP = Core.Player.CurrentGP.ToString();
-        public static readonly string CURGPPERC = Core.Player.CurrentGPPercent.ToString("0.#");
-        public static readonly string CURHP = Core.Player.CurrentHealth.ToString();
-        public static readonly string CURHPPERC = Core.Player.CurrentHealthPercent.ToString("0.#");
-        public static readonly string CURMP = Core.Player.CurrentMana.ToString();
-        public static readonly string CURMPPERC = Core.Player.CurrentManaPercent.ToString("0.#");
-        public static readonly string CURTP = Core.Player.CurrentTP.ToString();
-        public static readonly string CURTPPERC = Core.Player.CurrentCPPercent.ToString("0.#");
-        public static readonly string DEF = Core.Player.Stats.Defense.ToString();
-        public static readonly string DEX = Core.Player.Stats.Dexterity.ToString();
-        public static readonly string DHIT = Core.Player.Stats.DirectHitRate.ToString();
-        public static readonly string EARTH = Core.Player.Stats.Earth.ToString();
-        public static readonly string FIRE = Core.Player.Stats.Fire.ToString();
-        public static readonly string GTH = Core.Player.Stats.Gathering.ToString();
-        public static readonly string HMP = Core.Player.Stats.HealingMagicPotency.ToString();
-        public static readonly string ICE = Core.Player.Stats.Ice.ToString();
-        public static readonly string INT = Core.Player.Stats.Intelligence.ToString();
-        public static readonly string JOB = Core.Player.CurrentJob.ToString();
-        public static readonly string LEVEL = Core.Player.ClassLevel.ToString();
-        public static readonly string LIGHTINING = Core.Player.Stats.Lightning.ToString();
-        public static readonly string MAXCP = Core.Player.MaxCP.ToString();
-        public static readonly string MAXGP = Core.Player.MaxGP.ToString();
-        public static readonly string MAXHP = Core.Player.MaxHealth.ToString();
-        public static readonly string MAXMP = Core.Player.MaxMana.ToString();
-        public static readonly string MAXTP = Core.Player.MaxTP.ToString();
-        public static readonly string MDEF = Core.Player.Stats.MagicDefense.ToString();
-        public static readonly string MND = Core.Player.Stats.Mind.ToString();
-        public static readonly string MSPD = Core.Player.Stats.SpellSpeed.ToString();
-        public static readonly string NAME = Core.Player.Name;
-        public static readonly string PRT = Core.Player.Stats.Perception.ToString();
-        public static readonly string PSPD = Core.Player.Stats.SkillSpeed.ToString();
-        public static readonly string PTY = Core.Player.Stats.Piety.ToString();
-        public static readonly string STR = Core.Player.Stats.Strength.ToString();
-        public static readonly string TNC = Core.Player.Stats.Tenacity.ToString();
-        public static readonly string VIT = Core.Player.Stats.Vitality.ToString();
-        public static readonly string WATER = Core.Player.Stats.Water.ToString();
-        public static readonly string WIND = Core.Player.Stats.Wind.ToString();
+        public static readonly string Amp = Core.Player.Stats.AttackMagicPotency.ToString();
+        public static readonly string Atk = Core.Player.Stats.AttackPower.ToString();
+        public static readonly string Crit = Core.Player.Stats.CriticalHit.ToString();
+        public static readonly string Csm = Core.Player.Stats.Craftsmanship.ToString();
+        public static readonly string Ctl = Core.Player.Stats.Control.ToString();
+        public static readonly string Curcp = Core.Player.CurrentCP.ToString();
+        public static readonly string Curcpperc = Core.Player.CurrentCPPercent.ToString("0.#");
+        public static readonly string Curgp = Core.Player.CurrentGP.ToString();
+        public static readonly string Curgpperc = Core.Player.CurrentGPPercent.ToString("0.#");
+        public static readonly string Curhp = Core.Player.CurrentHealth.ToString();
+        public static readonly string Curhpperc = Core.Player.CurrentHealthPercent.ToString("0.#");
+        public static readonly string Curmp = Core.Player.CurrentMana.ToString();
+        public static readonly string Curmpperc = Core.Player.CurrentManaPercent.ToString("0.#");
+        public static readonly string Curtp = Core.Player.CurrentTP.ToString();
+        public static readonly string Curtpperc = Core.Player.CurrentCPPercent.ToString("0.#");
+        public static readonly string Def = Core.Player.Stats.Defense.ToString();
+        public static readonly string Dex = Core.Player.Stats.Dexterity.ToString();
+        public static readonly string Dhit = Core.Player.Stats.DirectHitRate.ToString();
+        public static readonly string Earth = Core.Player.Stats.Earth.ToString();
+        public static readonly string Fire = Core.Player.Stats.Fire.ToString();
+        public static readonly string Gth = Core.Player.Stats.Gathering.ToString();
+        public static readonly string Hmp = Core.Player.Stats.HealingMagicPotency.ToString();
+        public static readonly string Ice = Core.Player.Stats.Ice.ToString();
+        public static readonly string Int = Core.Player.Stats.Intelligence.ToString();
+        public static readonly string Job = Core.Player.CurrentJob.ToString();
+        public static readonly string Level = Core.Player.ClassLevel.ToString();
+        public static readonly string Lightining = Core.Player.Stats.Lightning.ToString();
+        public static readonly string Maxcp = Core.Player.MaxCP.ToString();
+        public static readonly string Maxgp = Core.Player.MaxGP.ToString();
+        public static readonly string Maxhp = Core.Player.MaxHealth.ToString();
+        public static readonly string Maxmp = Core.Player.MaxMana.ToString();
+        public static readonly string Maxtp = Core.Player.MaxTP.ToString();
+        public static readonly string Mdef = Core.Player.Stats.MagicDefense.ToString();
+        public static readonly string Mnd = Core.Player.Stats.Mind.ToString();
+        public static readonly string Mspd = Core.Player.Stats.SpellSpeed.ToString();
+        public static readonly string Name = Core.Player.Name;
+        public static readonly string Prt = Core.Player.Stats.Perception.ToString();
+        public static readonly string Pspd = Core.Player.Stats.SkillSpeed.ToString();
+        public static readonly string Pty = Core.Player.Stats.Piety.ToString();
+        public static readonly string Str = Core.Player.Stats.Strength.ToString();
+        public static readonly string Tnc = Core.Player.Stats.Tenacity.ToString();
+        public static readonly string Vit = Core.Player.Stats.Vitality.ToString();
+        public static readonly string Water = Core.Player.Stats.Water.ToString();
+        public static readonly string Wind = Core.Player.Stats.Wind.ToString();
 
         #endregion Stats
 
@@ -105,7 +105,7 @@ namespace Mud.Helpers
             }
         }
 
-        public static bool IsMeleeDPS(Character c)
+        public static bool IsMeleeDps(Character c)
         {
             switch (c.CurrentJob)
             {
@@ -123,7 +123,7 @@ namespace Mud.Helpers
             }
         }
 
-        public static bool IsRangedDPS(Character c)
+        public static bool IsRangedDps(Character c)
         {
             switch (c.CurrentJob)
             {

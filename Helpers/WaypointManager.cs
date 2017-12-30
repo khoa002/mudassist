@@ -14,26 +14,26 @@ namespace Mud.Helpers
 {
     public class Waypoint
     {
-        private static DateTime LastHardpoint = DateTime.Now;
-        private readonly bool IsHardPoint;
-        private readonly string Name;
-        public Vector3 Location;
+        private static readonly DateTime LastHardpoint = DateTime.Now;
+        private readonly bool _isHardPoint;
+        private readonly string _name;
+        internal Vector3 Location;
 
         public Waypoint(GameObject obj)
         {
             var hard = IsValid(obj.Location) && DateTime.Now.Subtract(LastHardpoint) > TimeSpan.FromSeconds(5);
-            if (hard) LastHardpoint = DateTime.Now;
+            //if (hard) { LastHardpoint = DateTime.Now; }
 
-            Name = obj.Name;
+            _name = obj.Name;
             Location = obj.Location;
-            IsHardPoint = hard;
+            _isHardPoint = hard;
         }
 
         public Waypoint(GameObject obj, bool hardPoint)
         {
-            Name = obj.Name;
+            _name = obj.Name;
             Location = obj.Location;
-            IsHardPoint = hardPoint;
+            _isHardPoint = hardPoint;
         }
 
         public float Distance(Waypoint other)
@@ -44,14 +44,13 @@ namespace Mud.Helpers
         public Waypoint Ground()
         {
             Vector3 rayStart = new Vector3(Location.X, Location.Y + 0.25f, Location.Z),
-                rayEnd = new Vector3(Location.X, Location.Y - 10f, Location.Z),
-                distances;
-            WorldManager.Raycast(rayStart, rayEnd, out var hit, out distances);
+                rayEnd = new Vector3(Location.X, Location.Y - 10f, Location.Z);
+            WorldManager.Raycast(rayStart, rayEnd, out var hit, out var distances);
             if (IsValid(hit)) Location = hit;
             return this;
         }
 
-        public bool InLineOfSight(Waypoint other)
+        public static bool InLineOfSight(Waypoint other)
         {
             return InLineOfSight(other, 1) && InLineOfSight(other, 2) && InLineOfSight(other, 3);
         }
@@ -63,7 +62,7 @@ namespace Mud.Helpers
 
         public override string ToString()
         {
-            return Name + " - " + Location + " Hardpoint: " + IsHardPoint;
+            return _name + " - " + Location + " Hardpoint: " + _isHardPoint;
         }
 
         private static bool IsValid(Vector3 loc)
@@ -83,9 +82,9 @@ namespace Mud.Helpers
 
     public static class WaypointManager
     {
-        private static readonly int WAYPOINT_DISTANCE = 2;
-        public static bool IsNavigating;
-        private static GameObject _MoveTarget;
+        private const int WaypointDistance = 2;
+        private const bool IsNavigating = false;
+        private static GameObject _moveTarget;
         private static readonly Queue<Waypoint> CurrentWaypoints = new Queue<Waypoint>();
 
         public static Waypoint Next
@@ -94,11 +93,12 @@ namespace Mud.Helpers
             {
                 if (CurrentWaypoints.Count == 0) return null;
                 var peek = CurrentWaypoints.Peek();
+
                 // Don't Skip Hardpoints
                 if (CurrentWaypoints.Count > 1)
                 {
                     var peek2 = CurrentWaypoints.ToArray()[1];
-                    if (peek2.IsCloserThan(peek) && peek2.InLineOfSight(new Waypoint(Core.Player)))
+                    if (peek2.IsCloserThan(peek) && Waypoint.InLineOfSight(new Waypoint(Core.Player)))
                     {
                         Logging.Write(Colors.SaddleBrown,
                             $@"[MudAssist] ==> Skipping Waypoint: {CurrentWaypoints.Dequeue()}");
@@ -112,46 +112,48 @@ namespace Mud.Helpers
             }
         }
 
+        internal static bool isNavigating => IsNavigating;
+
         public static void TrackMelee()
         {
             var moveTarget = GetMoveTargetMelee();
-            if (moveTarget != null)
-                if (CurrentWaypoints.Count > 0)
-                {
-                    var lastWaypoint = CurrentWaypoints.Last();
-                    var nextWaypoint = new Waypoint(moveTarget);
-                    if (lastWaypoint.Distance(nextWaypoint) > WAYPOINT_DISTANCE)
-                        CurrentWaypoints.Enqueue(nextWaypoint.Ground());
-                }
-                else
-                {
-                    var nextWaypoint = new Waypoint(moveTarget).Ground();
-                    CurrentWaypoints.Enqueue(nextWaypoint);
-                }
+            if (moveTarget == null) return;
+            if (CurrentWaypoints.Count > 0)
+            {
+                var lastWaypoint = CurrentWaypoints.Last();
+                var nextWaypoint = new Waypoint(moveTarget);
+                if (lastWaypoint.Distance(nextWaypoint) > WaypointDistance)
+                    CurrentWaypoints.Enqueue(nextWaypoint.Ground());
+            }
+            else
+            {
+                var nextWaypoint = new Waypoint(moveTarget).Ground();
+                CurrentWaypoints.Enqueue(nextWaypoint);
+            }
         }
 
         public static void TrackRanged()
         {
             var moveTarget = GetMoveTargetRanged();
-            if (moveTarget != null)
-                if (CurrentWaypoints.Count > 0)
-                {
-                    var lastWaypoint = CurrentWaypoints.Last();
-                    var nextWaypoint = new Waypoint(moveTarget);
-                    if (lastWaypoint.Distance(nextWaypoint) > WAYPOINT_DISTANCE)
-                        CurrentWaypoints.Enqueue(nextWaypoint.Ground());
-                }
-                else
-                {
-                    var nextWaypoint = new Waypoint(moveTarget).Ground();
-                    CurrentWaypoints.Enqueue(nextWaypoint);
-                }
+            if (moveTarget == null) return;
+            if (CurrentWaypoints.Count > 0)
+            {
+                var lastWaypoint = CurrentWaypoints.Last();
+                var nextWaypoint = new Waypoint(moveTarget);
+                if (lastWaypoint.Distance(nextWaypoint) > WaypointDistance)
+                    CurrentWaypoints.Enqueue(nextWaypoint.Ground());
+            }
+            else
+            {
+                var nextWaypoint = new Waypoint(moveTarget).Ground();
+                CurrentWaypoints.Enqueue(nextWaypoint);
+            }
         }
 
         // Needs Work
         internal static bool IsStuck()
         {
-            return IsNavigating && (!MovementManager.IsMoving || MovementManager.IsMoving && MovementManager.Speed < 2);
+            return isNavigating && (!MovementManager.IsMoving || MovementManager.IsMoving && MovementManager.Speed < 2);
         }
 
         internal static void MoveToNextMelee()
@@ -159,10 +161,10 @@ namespace Mud.Helpers
             var moveTarget = GetMoveTargetMelee();
             if (GetMoveTargetMelee() != null
                 // Start Navigating If > Max range
-                && (!IsNavigating
+                && (!isNavigating
                     && Core.Player.Location.Distance3D(moveTarget.Location) > MudSettings.Instance.FollowRangeMax
                     // Keep Navigating If > Min Range
-                    || IsNavigating
+                    || isNavigating
                     && Core.Player.Location.Distance3D(moveTarget.Location) > MudSettings.Instance.FollowRangeMin
                     || Core.Player.Location.Distance3D(moveTarget.Location) >
                     MudSettings.Instance.TargetRangeMelee + moveTarget.CombatReach
@@ -188,10 +190,10 @@ namespace Mud.Helpers
             var moveTarget = GetMoveTargetRanged();
             if (GetMoveTargetRanged() != null
                 // Start Navigating If > Max range
-                && (!IsNavigating
+                && (!isNavigating
                     && Core.Player.Location.Distance3D(moveTarget.Location) > MudSettings.Instance.FollowRangeMax
                     // Keep Navigating If > Min Range
-                    || IsNavigating
+                    || isNavigating
                     && Core.Player.Location.Distance3D(moveTarget.Location) > MudSettings.Instance.FollowRangeMin
                     || Core.Player.Location.Distance3D(moveTarget.Location) >
                     MudSettings.Instance.TargetRangeRanged + moveTarget.CombatReach
@@ -250,14 +252,12 @@ namespace Mud.Helpers
                      MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
                 newTarget = targetTanks.First();
 
-            if (_MoveTarget != newTarget)
-            {
-                var oldTarget = _MoveTarget;
-                _MoveTarget = newTarget;
-                OnTargetChanged(oldTarget, newTarget);
-            }
+            if (_moveTarget == newTarget) return _moveTarget;
+            var oldTarget = _moveTarget;
+            _moveTarget = newTarget;
+            OnTargetChanged(oldTarget, newTarget);
 
-            return _MoveTarget;
+            return _moveTarget;
         }
 
         private static GameObject GetMoveTargetRanged()
@@ -291,21 +291,19 @@ namespace Mud.Helpers
                      MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
                 newTarget = targetTanks.First();
 
-            if (_MoveTarget != newTarget)
-            {
-                var oldTarget = _MoveTarget;
-                _MoveTarget = newTarget;
-                OnTargetChanged(oldTarget, newTarget);
-            }
+            if (_moveTarget == newTarget) return _moveTarget;
+            var oldTarget = _moveTarget;
+            _moveTarget = newTarget;
+            OnTargetChanged(oldTarget, newTarget);
 
-            return _MoveTarget;
+            return _moveTarget;
         }
 
         private static void OnTargetChanged(GameObject oldTarget, GameObject newTarget)
         {
             CurrentWaypoints.Clear();
-            if (JobHelper.IsMeleeDPS(Core.Player) || JobHelper.IsTank(Core.Player)) TrackMelee();
-            else if (JobHelper.IsHealer(Core.Player) || JobHelper.IsRangedDPS(Core.Player))
+            if (JobHelper.IsMeleeDps(Core.Player) || JobHelper.IsTank(Core.Player)) TrackMelee();
+            else if (JobHelper.IsHealer(Core.Player) || JobHelper.IsRangedDps(Core.Player))
                 TrackRanged();
         }
     }

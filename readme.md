@@ -1,4 +1,4 @@
-# Mud Assist 2.1.4
+# Mud Assist 2.1.5
 Mud Assist is a Botbase for [Rebornbuddy](http://rebornbuddy.com) that gives full control over your CRs.
 It's similar to the Combat Assist Botbase, but gives much more control.
 
@@ -28,6 +28,12 @@ It's similar to the Combat Assist Botbase, but gives much more control.
 3. Select `MudAssist` from the **BotBase Dropdown Menu** after starting **RB**
 
 ## Change Log
+- `2.1.5`
+  - Code cleanup
+  - Minified (more and) again the icons
+  - Cleaned up a misbehaviour related to the DataSource usage (thanks Fryheit)
+  - Restored Auto-Face (thanks Fryheit)
+  - Corrected various settings-related bugs. All settings should be saved properly now (thanks Fryheit)
 - `2.1.4`
   - Removed RB_CN flags cause is not needed anymore
 - `2.1.3`

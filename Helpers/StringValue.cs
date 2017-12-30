@@ -12,6 +12,6 @@
             Name = "";
         }
 
-        public string Name { get; set; }
+        private string Name { get; }
     }
 }

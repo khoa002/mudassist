@@ -26,10 +26,10 @@ namespace Mud
 {
     public class MudAssist : BotBase
     {
-        public const string Version = "2.1.4", Beta = "BETA", BetaVer = "1";
-        public const bool IsBeta = false;
+        internal const string Version = "2.1.5", Beta = "BETA", BetaVer = "1";
+        internal const bool IsBeta = false;
         public static volatile bool IsStarted;
-        private static string LastTargetName;
+        private static string _lastTargetName;
 
         #region Selectable Values
 
@@ -70,14 +70,14 @@ namespace Mud
             }
         }
 
-        public bool TreeTick()
+        private static bool TreeTick()
         {
             if (Core.Player.CurrentTarget != null && Core.Player.CurrentTarget.Name != null)
-                LastTargetName = Core.Player.CurrentTarget.Name;
+                _lastTargetName = Core.Player.CurrentTarget.Name;
 
-            if (JobHelper.IsMeleeDPS(Core.Player) || JobHelper.IsTank(Core.Player))
+            if (JobHelper.IsMeleeDps(Core.Player) || JobHelper.IsTank(Core.Player))
                 WaypointManager.TrackMelee();
-            else if (JobHelper.IsHealer(Core.Player) || JobHelper.IsRangedDPS(Core.Player))
+            else if (JobHelper.IsHealer(Core.Player) || JobHelper.IsRangedDps(Core.Player))
                 WaypointManager.TrackRanged();
 
             SettingsForm.UpdateStatus();
@@ -89,7 +89,7 @@ namespace Mud
         #region Overrides
 
         private Composite _root;
-        private SettingsForm settings;
+        private SettingsForm _settings;
         public override string Name => @"MudAssist";
         public override PulseFlags PulseFlags => PulseFlags.All;
         public override bool RequiresProfile => false;
@@ -113,9 +113,9 @@ namespace Mud
                                                           new Action(a =>
                                                           {
                                                               AgentCutScene.Instance.PromptSkip();
-                                                              if (AgentCutScene.Instance.CanSkip)
-                                                                  if (SelectString.IsOpen)
-                                                                      SelectString.ClickSlot(0);
+                                                              if (!AgentCutScene.Instance.CanSkip) return;
+                                                              if (SelectString.IsOpen)
+                                                                  SelectString.ClickSlot(0);
                                                           })
                                                       ),
                                                       // Auto Talk to NPCs and/or Auto Accept/Complete Quest
@@ -228,7 +228,7 @@ namespace Mud
                                                       new Decorator
                                                       (
                                                           req => MudSettings.Instance.AutoMove
-                                                                 && WaypointManager.IsNavigating
+                                                                 && WaypointManager.isNavigating
                                                                  && WaypointManager.Next == null,
                                                           new Action(a => { WaypointManager.StopNavigating(); })
                                                       ),
@@ -240,10 +240,10 @@ namespace Mud
                                                                  && WaypointManager.Next != null,
                                                           new Action(a =>
                                                           {
-                                                              if (JobHelper.IsRangedDPS(Core.Player) ||
+                                                              if (JobHelper.IsRangedDps(Core.Player) ||
                                                                   JobHelper.IsHealer(Core.Player))
                                                                   WaypointManager.MoveToNextRanged();
-                                                              else if (JobHelper.IsMeleeDPS(Core.Player) ||
+                                                              else if (JobHelper.IsMeleeDps(Core.Player) ||
                                                                        JobHelper.IsTank(Core.Player))
                                                                   WaypointManager.MoveToNextMelee();
                                                           })
@@ -331,7 +331,7 @@ namespace Mud
                                                                              .Distance3D(Core.Player.Location)
                                                                          <= RoutineManager.Current.PullRange
                                                                          + Core.Player.CurrentTarget.CombatReach
-                                                                         + (float) MudSettings.Instance
+                                                                         + MudSettings.Instance
                                                                              .TargetRangeMelee,
                                                                   new PrioritySelector(
                                                                       RoutineManager.Current.PullBehavior,
@@ -364,7 +364,7 @@ namespace Mud
                                                                              .Distance3D(Core.Player.Location)
                                                                          <= RoutineManager.Current.PullRange
                                                                          + Core.Player.CurrentTarget.CombatReach
-                                                                         + (float) MudSettings.Instance
+                                                                         + MudSettings.Instance
                                                                              .TargetRangeMelee,
                                                                   RoutineManager.Current.CombatBehavior
                                                               )
@@ -385,9 +385,9 @@ namespace Mud
 
         public sealed override void OnButtonPress()
         {
-            if (settings == null || settings.IsDisposed || settings.Disposing) settings = new SettingsForm();
-            settings.Show();
-            settings.Activate();
+            if (_settings == null || _settings.IsDisposed || _settings.Disposing) _settings = new SettingsForm();
+            _settings.Show();
+            _settings.Activate();
         }
 
         public override void Start()
@@ -418,7 +418,7 @@ namespace Mud
 
         #region Hotkeys
 
-        public static Hotkey _hotkeyPause, _hotkeyTargetMode, _hotkeyToggleMovement, _hotkeyToggleMovementMode;
+        private static Hotkey _hotkeyPause, _hotkeyTargetMode, _hotkeyToggleMovement, _hotkeyToggleMovementMode;
 
         public static void ResetHotkeys()
         {
@@ -590,7 +590,7 @@ namespace Mud
             }
         }
 
-        public static void UnregisterAllHotkeys()
+        private static void UnregisterAllHotkeys()
         {
             UnregisterHotkey(_hotkeyPause);
             UnregisterHotkey(_hotkeyTargetMode);
@@ -598,7 +598,7 @@ namespace Mud
             UnregisterHotkey(_hotkeyToggleMovementMode);
         }
 
-        public static void UnregisterHotkey(Hotkey hk)
+        private static void UnregisterHotkey(Hotkey hk)
         {
             if (hk != null) HotkeyManager.Unregister(hk);
         }
@@ -616,17 +616,15 @@ namespace Mud
                                                                            p.TargetCharacter.MaxHealth
                                        ) != null;
 
-        public static void Assist(Character c)
+        private static void Assist(Character c)
         {
             var target = GameObjectManager.GetObjectByObjectId(c.CurrentTargetId);
-            if (target != null && target.IsTargetable && target.IsValid && target.CanAttack)
-            {
-                Logging.Write(Colors.Brown, $@"[MudAssist] ==> Assisting {c.Name}");
-                target.Target();
-            }
+            if (target == null || !target.IsTargetable || !target.IsValid || !target.CanAttack) return;
+            Logging.Write(Colors.Brown, $@"[MudAssist] ==> Assisting {c.Name}");
+            target.Target();
         }
 
-        public static GameObject GetClosestEnemyByName(StringCollection names)
+        private static GameObject GetClosestEnemyByName(StringCollection names)
         {
             Logging.Write(Colors.Brown, @"[MudAssist] ==> Finding nearest enemy to attack...");
             return GameObjectManager.GameObjects.Where(u =>
@@ -635,20 +633,18 @@ namespace Mud
                 .OrderBy(u => Core.Player.Location.Distance3D(u.Location)).FirstOrDefault();
         }
 
-        public static Character GetPartyTank()
+        private static Character GetPartyTank()
         {
-            if (GetVisiblePartyMembers().Count > 0)
-                try
-                {
-                    return GetVisiblePartyMembers().First(p => JobHelper.IsTank(p));
-                }
-                catch (Exception ex)
-                {
-                    Logging.Write(Colors.Brown, $"{ex}");
-                    return null;
-                }
-
-            return null;
+            if (GetVisiblePartyMembers().Count <= 0) return null;
+            try
+            {
+                return GetVisiblePartyMembers().First(JobHelper.IsTank);
+            }
+            catch (Exception ex)
+            {
+                Logging.Write(Colors.Brown, $@"{ex}");
+                return null;
+            }
         }
 
         public static List<Character> GetVisiblePartyMembers()
@@ -657,15 +653,16 @@ namespace Mud
             if (!PartyManager.IsInParty)
                 members.Add(Core.Player);
             else
-                members.AddRange(from pm in PartyManager.AllMembers where pm.IsInObjectManager select (Character) GameObjectManager.GetObjectByObjectId(pm.ObjectId));
+                members.AddRange(from pm in PartyManager.AllMembers
+                    where pm.IsInObjectManager
+                    select (Character) GameObjectManager.GetObjectByObjectId(pm.ObjectId));
 
             return members;
         }
 
         public static bool IsValidEnemy(GameObject obj)
         {
-            if (obj == null) return false;
-            if (!(obj is Character)) return false;
+            if (obj == null || !(obj is Character)) return false;
             var c = (Character) obj;
             return !c.IsMe && !c.IsDead && c.IsValid && c.IsTargetable && c.IsVisible && c.CanAttack;
         }
