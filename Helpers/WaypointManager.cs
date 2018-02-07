@@ -22,8 +22,6 @@ namespace Mud.Helpers
         public Waypoint(GameObject obj)
         {
             var hard = IsValid(obj.Location) && DateTime.Now.Subtract(LastHardpoint) > TimeSpan.FromSeconds(5);
-            //if (hard) { LastHardpoint = DateTime.Now; }
-
             _name = obj.Name;
             Location = obj.Location;
             _isHardPoint = hard;
@@ -248,7 +246,7 @@ namespace Mud.Helpers
                     MudSettings.Instance.FollowRangeMin
                     && MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Follow")))
                 newTarget = Core.Player.CurrentTarget;
-            else if (targetTanks.Any() &&
+            else if (targetTanks.Count() > 0 &&
                      MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
                 newTarget = targetTanks.First();
 
@@ -287,9 +285,12 @@ namespace Mud.Helpers
                     MudSettings.Instance.FollowRangeMin
                     && MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Follow")))
                 newTarget = Core.Player.CurrentTarget;
-            else if (targetTanks.Any() &&
-                     MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
-                newTarget = targetTanks.First();
+            else
+            {
+                if (targetTanks.Count() > 0 &&
+                    MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
+                    newTarget = targetTanks.First();
+            }
 
             if (_moveTarget == newTarget) return _moveTarget;
             var oldTarget = _moveTarget;

@@ -18,7 +18,6 @@ using ff14bot.RemoteAgents;
 using ff14bot.RemoteWindows;
 using Mud.Helpers;
 using Mud.Settings;
-using Mud.Settings.Forms;
 using TreeSharp;
 using Action = TreeSharp.Action;
 
@@ -26,18 +25,25 @@ namespace Mud
 {
     public class MudAssist : BotBase
     {
-        internal const string Version = "2.1.5", Beta = "BETA", BetaVer = "1";
+        internal const string Version = "2.1.6", Beta = "BETA", BetaVer = "1";
         internal const bool IsBeta = false;
-        public static volatile bool IsStarted;
-        private static string _lastTargetName;
+        internal static bool IsStarted;
 
         #region Selectable Values
 
-        internal static readonly string[] SecondsBetweenUpdates = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
+        internal static readonly string[] SecondsBetweenUpdates =
+            {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
+
         internal static readonly string[] ModifierKeyStrings = {"None", "Shift", "Control", "Alt"};
         internal static readonly string[] TargetingModes = {"None", "Assist Tank", "Being Tanked", "Nearest Enemy"};
         internal static readonly string[] MovementModes = {"Combat", "Tank", "Follow"};
         internal static readonly string[] SupportedNavigationProviders = {"Null", "Service Navigation"};
+
+        internal static readonly string[] SecondsBeforeAccept =
+        {
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+            "20"
+        };
 
         #endregion Selectable Values
 
@@ -48,33 +54,28 @@ namespace Mud
             switch (SupportedNavigationProviders[MudSettings.Instance.NavigationProvider])
             {
                 case "Null":
-                    if (!(Navigator.NavigationProvider is NullProvider))
+                    switch (Navigator.NavigationProvider)
                     {
-                        if (Navigator.NavigationProvider is ServiceNavigationProvider g)
+                        case NullProvider _:
+                            return;
+                        case ServiceNavigationProvider g:
                             g.Dispose();
-
-                        Navigator.NavigationProvider = new NullProvider();
-                        Logging.Write(Colors.Brown, @"[MudAssist] ==> Using Null Navigator");
+                            break;
                     }
 
+                    Navigator.NavigationProvider = new NullProvider();
+                    Logging.Write(Colors.Brown, @"[MudAssist] ==> Using Null Navigator");
                     break;
-
                 case "Service Navigation":
-                    if (!(Navigator.NavigationProvider is ServiceNavigationProvider))
-                    {
-                        Navigator.NavigationProvider = new ServiceNavigationProvider();
-                        Logging.Write(Colors.Brown, @"[MudAssist] ==> Using Service Navigator");
-                    }
-
+                    if (Navigator.NavigationProvider is ServiceNavigationProvider) return;
+                    Navigator.NavigationProvider = new ServiceNavigationProvider();
+                    Logging.Write(Colors.Brown, @"[MudAssist] ==> Using Service Navigator");
                     break;
             }
         }
 
         private static bool TreeTick()
         {
-            if (Core.Player.CurrentTarget != null && Core.Player.CurrentTarget.Name != null)
-                _lastTargetName = Core.Player.CurrentTarget.Name;
-
             if (JobHelper.IsMeleeDps(Core.Player) || JobHelper.IsTank(Core.Player))
                 WaypointManager.TrackMelee();
             else if (JobHelper.IsHealer(Core.Player) || JobHelper.IsRangedDps(Core.Player))
@@ -108,14 +109,13 @@ namespace Mud
                                                       // Auto Skip Cutscenes
                                                       new Decorator
                                                       (
-                                                          req => MudSettings.Instance.SkipCutscenes
-                                                                 && QuestLogManager.InCutscene,
+                                                          req => MudSettings.Instance.SkipCutscenes,
                                                           new Action(a =>
                                                           {
+                                                              if (!QuestLogManager.InCutscene) return;
                                                               AgentCutScene.Instance.PromptSkip();
                                                               if (!AgentCutScene.Instance.CanSkip) return;
-                                                              if (SelectString.IsOpen)
-                                                                  SelectString.ClickSlot(0);
+                                                              if (SelectString.IsOpen) SelectString.ClickSlot(0);
                                                           })
                                                       ),
                                                       // Auto Talk to NPCs and/or Auto Accept/Complete Quest
@@ -129,26 +129,29 @@ namespace Mud
                                                               // Auto Talk to NPCs
                                                               new Decorator
                                                               (
-                                                                  req => MudSettings.Instance.TalkToNpc &&
-                                                                         Talk.DialogOpen,
-                                                                  new Action(a => { Talk.Next(); })
+                                                                  req => MudSettings.Instance.TalkToNpc,
+                                                                  new Action(a =>
+                                                                  {
+                                                                      if (Talk.DialogOpen) Talk.Next();
+                                                                  })
                                                               ),
                                                               // Auto Accept Quests
                                                               new Decorator
                                                               (
-                                                                  req => MudSettings.Instance.AcceptQuests &&
-                                                                         JournalAccept.IsOpen,
-                                                                  new Action(a => { JournalAccept.Accept(); })
+                                                                  req => MudSettings.Instance.AcceptQuests,
+                                                                  new Action(a =>
+                                                                  {
+                                                                      if (JournalAccept.IsOpen) JournalAccept.Accept();
+                                                                  })
                                                               ),
                                                               // Auto Complete Quest
                                                               new Decorator
                                                               (
-                                                                  req => MudSettings.Instance.CompleteQuests &&
-                                                                         JournalResult.IsOpen,
+                                                                  req => MudSettings.Instance.CompleteQuests,
                                                                   new Action(a =>
                                                                   {
-                                                                      // Need to find a way to auto complete it...
-                                                                      //JournalResult.Complete();
+                                                                      // Need to find a way (that work) to auto complete it...
+                                                                      // if (JournalResult.IsOpen) JournalResult.Complete();
                                                                   })
                                                               )
                                                           )
@@ -227,19 +230,22 @@ namespace Mud
                                                       // Stop Moving If Moving & In Range of Target
                                                       new Decorator
                                                       (
-                                                          req => MudSettings.Instance.AutoMove
-                                                                 && WaypointManager.isNavigating
-                                                                 && WaypointManager.Next == null,
-                                                          new Action(a => { WaypointManager.StopNavigating(); })
+                                                          req => MudSettings.Instance.AutoMove,
+                                                          new Action(a =>
+                                                          {
+                                                              if (WaypointManager.isNavigating &&
+                                                                  WaypointManager.Next == null)
+                                                                  WaypointManager.StopNavigating();
+                                                          })
                                                       ),
                                                       // Move to Target If Not in Range & Not on the Move
                                                       new Decorator
                                                       (
-                                                          req => MudSettings.Instance.AutoMove
-                                                                 && !Core.Player.IsCasting
-                                                                 && WaypointManager.Next != null,
+                                                          req => MudSettings.Instance.AutoMove,
                                                           new Action(a =>
                                                           {
+                                                              if (Core.Player.IsCasting || WaypointManager.Next == null)
+                                                                  return;
                                                               if (JobHelper.IsRangedDps(Core.Player) ||
                                                                   JobHelper.IsHealer(Core.Player))
                                                                   WaypointManager.MoveToNextRanged();
@@ -369,6 +375,20 @@ namespace Mud
                                                                   RoutineManager.Current.CombatBehavior
                                                               )
                                                           )
+                                                      ),
+                                                      // Auto Commence Duty
+                                                      new Decorator
+                                                      (
+                                                          req => MudSettings.Instance.AutoCommenceDuty,
+                                                          new Action(a =>
+                                                          {
+                                                              if (!ContentsFinderConfirm.IsOpen) return;
+                                                              SndPlayer.Play();
+                                                              Logging.Write(Colors.Brown, @"Dungeon is ready");
+                                                              DutyJoiner.Reset();
+                                                              if (MudSettings.Instance.AutoCommenceDuty)
+                                                                  DutyJoiner.Commence();
+                                                          })
                                                       )
                                                   )
                                               ));
@@ -377,9 +397,8 @@ namespace Mud
 
         public override void Initialize()
         {
-            if (IsBeta)
-                Logging.Write(Colors.Brown, $@"[MudAssist] Loaded v" + Version + @" " + Beta + @"-" + BetaVer);
-            Logging.Write(Colors.Brown, @"[MudAssist] Loaded v" + Version);
+            const string version = IsBeta ? @"[MudAssist] Loaded v" + Version + @" " + Beta + @"-" + BetaVer : @"[MudAssist] Loaded v" + Version + @" ";
+            Logging.Write(Colors.Brown, version);
             UnregisterAllHotkeys();
         }
 
@@ -397,8 +416,7 @@ namespace Mud
             GameSettingsManager.FaceTargetOnAction = MudSettings.Instance.AutoFaceTarget;
             Logging.Write(Colors.Brown, @"[MudAssist] Started");
             ResetHotkeys();
-            if (!IsStarted)
-                IsStarted = true;
+            IsStarted = true;
         }
 
         public override void Stop()
@@ -410,8 +428,7 @@ namespace Mud
             Navigator.NavigationProvider = new NullProvider();
             Logging.Write(Colors.Brown, @"[MudAssist] Stopped");
             UnregisterAllHotkeys();
-            if (IsStarted)
-                IsStarted = false;
+            IsStarted = false;
         }
 
         #endregion Overrides
@@ -439,7 +456,7 @@ namespace Mud
                 catch (Exception ex)
                 {
                     key = Keys.None;
-                    Logging.Write(Colors.Brown, $"{ex}");
+                    Logging.Write(Colors.Red, $@"{ex}");
                 }
 
                 if (key != Keys.None)
@@ -479,7 +496,7 @@ namespace Mud
                 catch (Exception ex)
                 {
                     key = Keys.None;
-                    Logging.Write(Colors.Brown, $"{ex}");
+                    Logging.Write(Colors.Red, $@"{ex}");
                 }
 
                 if (key != Keys.None)
@@ -519,7 +536,7 @@ namespace Mud
                 catch (Exception ex)
                 {
                     key = Keys.None;
-                    Logging.Write(Colors.Brown, $"{ex}");
+                    Logging.Write(Colors.Red, $@"{ex}");
                 }
 
                 if (key != Keys.None)
@@ -560,7 +577,7 @@ namespace Mud
                 catch (Exception ex)
                 {
                     key = Keys.None;
-                    Logging.Write(Colors.Brown, $"{ex}");
+                    Logging.Write(Colors.Red, $@"{ex}");
                 }
 
                 if (key != Keys.None)
@@ -642,7 +659,7 @@ namespace Mud
             }
             catch (Exception ex)
             {
-                Logging.Write(Colors.Brown, $@"{ex}");
+                Logging.Write(Colors.Red, $@"{ex}");
                 return null;
             }
         }
