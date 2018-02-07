@@ -1,5 +1,5 @@
 
-# Mud Assist 2.1.5
+# Mud Assist 2.1.6
 Mud Assist is a Botbase for [RB](http://rebornbuddy.com) that gives full control over your CRs.
 It's similar to the Combat Assist Botbase, but gives much more control and features.
 
