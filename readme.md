@@ -29,7 +29,7 @@ It's similar to the Combat Assist Botbase, but gives much more control and featu
 3. Select `MudAssist` from the **BotBase Dropdown Menu** after starting **RB**
 
 ## Changelog
-Check the changes here: [Changelog](https://github.com/miracle091/mudassist/blob/master/changelog.md)
+Check the changes here: [Changelog](https://github.com/miracle091/mudassist/blob/master/CHANGELOG.md)
 
 ## Planned Updates
 - Nothing at the moment...
