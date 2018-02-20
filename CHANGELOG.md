@@ -1,4 +1,6 @@
 # Change Log
+- `2.1.8`
+  - Fixed crash at start
 - `2.1.7`
   - Added language support for CN users, the two version is separated
   - Reverted some changes to TreeTick to fix a nasty bug than make the player don't do anything

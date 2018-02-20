@@ -15,7 +15,7 @@ namespace Mud.Settings
 {
     public sealed partial class SettingsForm : Form
     {
-        private static readonly int Seconds = Convert.ToInt32(_instance.cmbSecondsBetweenUpdate.Text);
+        private static int _seconds;
         private static SettingsForm _instance;
         private Timer _t;
 
@@ -62,9 +62,9 @@ namespace Mud.Settings
             try
             {
                 if (CommonBehaviors.IsLoading) return;
-                if (Seconds >= 1 && Seconds <= 10)
+                if (_seconds >= 1 && _seconds <= 10)
                 {
-                    _t.Interval = Seconds * 1000;
+                    _t.Interval = _seconds * 1000;
                     LoadCharInfo();
                 }
                 else
