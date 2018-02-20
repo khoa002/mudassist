@@ -21,10 +21,6 @@ namespace Mud.Settings
 
         public SettingsForm()
         {
-            _instance = this;
-            SetStyle(ControlStyles.UserPaint, true);
-            SetStyle(ControlStyles.ResizeRedraw, true);
-            DoubleBuffered = true;
             InitializeComponent();
             ReloadSettings();
             InitializeDataBindings();
@@ -204,8 +200,7 @@ namespace Mud.Settings
                 false, DataSourceUpdateMode.OnPropertyChanged);
             cbxAutoSkipCutscenes.DataBindings.Add("Checked", MudSettings.Instance, "SkipCutscenes",
                 false, DataSourceUpdateMode.OnPropertyChanged);
-            cbxAutoCommenceDuty.DataBindings.Add("Checked", MudSettings.Instance, "AutoCommenceDuty",
-                false, DataSourceUpdateMode.OnPropertyChanged);
+
             cmbSecondsBeforeAccept.DataSource = MudAssist.SecondsBeforeAccept;
             cmbSecondsBeforeAccept.DataBindings.Add("SelectedIndex", MudSettings.Instance, "AutoCommenceDutyDelay",
                 false, DataSourceUpdateMode.OnPropertyChanged);
@@ -249,7 +244,7 @@ namespace Mud.Settings
             #region General Stats
 
             tbxCharName.Text = $@"Name : {JobHelper.Name}";
-            tbxCharJobNameLevel.Text = $@"Job : {JobHelper.Job} / Level : {JobHelper.Level}";
+            tbxCharJobNameLevel.Text = $@"职业 : {JobHelper.Job} / 等级 : {JobHelper.Level}";
 
             tbxCharHP.Text = $@"{JobHelper.Curhp}/{JobHelper.Maxhp}";
             tbxCharTP.Text = $@"{JobHelper.Curtp}/{JobHelper.Maxtp}";
@@ -257,19 +252,28 @@ namespace Mud.Settings
             tbxCharHPPerc.Text = $@"{JobHelper.Curhpperc}/100 %";
             tbxCharTPPerc.Text = $@"{JobHelper.Curtpperc}/100 %";
 
-            tbxCharStrength.Text = $@"STR : {JobHelper.Str}";
-            tbxCharDexterity.Text = $@"DEX : {JobHelper.Dex}";
-            tbxCharVitality.Text = $@"VIT : {JobHelper.Vit}";
-            tbxCharIntelligence.Text = $@"INT : {JobHelper.Int}";
-            tbxCharMind.Text = $@"MND : {JobHelper.Mnd}";
+            tbxCharStrength.Text = $@"力量 : {JobHelper.Str}";
+            tbxCharDexterity.Text = $@"灵巧 : {JobHelper.Dex}";
+            tbxCharVitality.Text = $@"耐力 : {JobHelper.Vit}";
+            tbxCharIntelligence.Text = $@"智力 : {JobHelper.Int}";
+            tbxCharMind.Text = $@"精神 : {JobHelper.Mnd}";
 
-            tbxCharCriticalHit.Text = $@"CRIT : {JobHelper.Crit}";
-            tbxCharDirectHit.Text = $@"DHIT : {JobHelper.Dhit}";
-            tbxCharDefense.Text = $@"DEF : {JobHelper.Def}";
-            tbxCharMagicDefense.Text = $@"MDEF : {JobHelper.Mdef}";
+#if RB_CN
+            tbxCharFireResistance.Text = $@"{JobHelper.Fire}";
+            tbxCharIceResistance.Text = $@"{JobHelper.Ice}";
+            tbxCharWindResistance.Text = $@"{JobHelper.Wind}";
+            tbxCharEarthResistance.Text = $@"{JobHelper.Earth}";
+            tbxCharLightningResistance.Text = $@"{JobHelper.Lightining}";
+            tbxCharWaterResistance.Text = $@"{JobHelper.Water}";
+#endif
 
-            tbxCharAttackPower.Text = $@"ATK : {JobHelper.Atk}";
-            tbxCharSkillSpeed.Text = $@"SPD : {JobHelper.Pspd}";
+            tbxCharCriticalHit.Text = $@"暴击 : {JobHelper.Crit}";
+            tbxCharDirectHit.Text = $@"直击 : {JobHelper.Dhit}";
+            tbxCharDefense.Text = $@"物理防御力 : {JobHelper.Def}";
+            tbxCharMagicDefense.Text = $@"魔法防御力 : {JobHelper.Mdef}";
+
+            tbxCharAttackPower.Text = $@"物理攻击力 : {JobHelper.Atk}";
+            tbxCharSkillSpeed.Text = $@"技能速度 : {JobHelper.Pspd}";
 
             #endregion General Stats
 

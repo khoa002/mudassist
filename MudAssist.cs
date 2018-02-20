@@ -55,22 +55,24 @@ namespace Mud
             switch (SupportedNavigationProviders[MudSettings.Instance.NavigationProvider])
             {
                 case "Null":
-                    switch (Navigator.NavigationProvider)
+                    if (!(Navigator.NavigationProvider is NullProvider))
                     {
-                        case NullProvider _:
-                            return;
-                        case ServiceNavigationProvider g:
+                        if (Navigator.NavigationProvider is ServiceNavigationProvider g)
                             g.Dispose();
-                            break;
+
+                        Navigator.NavigationProvider = new NullProvider();
+                        Logging.Write(Colors.Brown, @"[MudAssist] ==> Using Null Navigator");
                     }
 
-                    Navigator.NavigationProvider = new NullProvider();
-                    Logging.Write(Colors.Brown, @"[MudAssist] ==> Using Null Navigator");
                     break;
+
                 case "Service Navigation":
-                    if (Navigator.NavigationProvider is ServiceNavigationProvider) return;
-                    Navigator.NavigationProvider = new ServiceNavigationProvider();
-                    Logging.Write(Colors.Brown, @"[MudAssist] ==> Using Service Navigator");
+                    if (!(Navigator.NavigationProvider is ServiceNavigationProvider))
+                    {
+                        Navigator.NavigationProvider = new ServiceNavigationProvider();
+                        Logging.Write(Colors.Brown, @"[MudAssist] ==> Using Service Navigator");
+                    }
+
                     break;
             }
         }
@@ -152,8 +154,8 @@ namespace Mud
                                                                          JournalResult.IsOpen,
                                                                   new Action(a =>
                                                                   {
-                                                                      // Need to find a way (that work) to auto complete it...
-                                                                      // if (JournalResult.IsOpen) JournalResult.Complete();
+                                                                      // Need to find a way to auto complete it...
+                                                                      //JournalResult.Complete();
                                                                   })
                                                               )
                                                           )
@@ -396,17 +398,14 @@ namespace Mud
 
         public override void Initialize()
         {
-            const string version = IsBeta
-                ? @"[MudAssist] Loaded v" + Version + @" " + Beta + @"-" + BetaVer
-                : @"[MudAssist] Loaded v" + Version + @" ";
+            const string version = IsBeta ? @"[MudAssist] Loaded v" + Version + @" " + Beta + @"-" + BetaVer : @"[MudAssist] Loaded v" + Version + @" ";
             Logging.Write(Colors.Brown, version);
             UnregisterAllHotkeys();
         }
 
         public sealed override void OnButtonPress()
         {
-            if (_settingsForm == null || _settingsForm.IsDisposed || _settingsForm.Disposing)
-                _settingsForm = new SettingsForm();
+            if (_settingsForm == null || _settingsForm.IsDisposed || _settingsForm.Disposing) _settingsForm = new SettingsForm();
             _settingsForm.Show();
             _settingsForm.Activate();
         }

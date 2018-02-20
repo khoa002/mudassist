@@ -47,6 +47,15 @@ namespace Mud.Helpers
             Tnc = Core.Me.Stats.Tenacity.ToString(),
             Vit = Core.Me.Stats.Vitality.ToString();
 
+#if RB_CN
+        public static readonly string Earth = Core.Me.Stats.Earth.ToString(),
+            Fire = Core.Me.Stats.Fire.ToString(),
+            Ice = Core.Me.Stats.Ice.ToString(),
+            Lightining = Core.Me.Stats.Lightning.ToString(),
+            Water = Core.Me.Stats.Water.ToString(),
+            Wind = Core.Me.Stats.Wind.ToString();
+#endif
+
         #endregion Stats
 
         #region Job Types
