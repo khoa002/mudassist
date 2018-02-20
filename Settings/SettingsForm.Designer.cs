@@ -1853,6 +1853,7 @@ namespace Mud.Settings
             this.ClientSize = new System.Drawing.Size(341, 358);
             this.Controls.Add(this.tabControlMain);
             this.Controls.Add(this.stpStatus);
+            this.DoubleBuffered = true;
             this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

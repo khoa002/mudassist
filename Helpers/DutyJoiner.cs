@@ -43,7 +43,7 @@ namespace Mud.Helpers
     internal static class SndPlayer
     {
         private const string FileName = "DungeonIsReady";
-        private static readonly string SoundPath = Application.StartupPath + @"\Plugins\MudAssist\Sound\";
+        private static readonly string SoundPath = Application.StartupPath + @"\BotBases\MudAssist\Sound\";
 
         private static readonly IEnumerable<string> SupportedExtension = Directory
             .EnumerateFiles(SoundPath, "*.*", SearchOption.AllDirectories).Where(s =>

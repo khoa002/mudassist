@@ -246,7 +246,7 @@ namespace Mud.Helpers
                     MudSettings.Instance.FollowRangeMin
                     && MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Follow")))
                 newTarget = Core.Player.CurrentTarget;
-            else if (targetTanks.Count() > 0 &&
+            else if (targetTanks.Any() &&
                      MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
                 newTarget = targetTanks.First();
 
@@ -285,12 +285,9 @@ namespace Mud.Helpers
                     MudSettings.Instance.FollowRangeMin
                     && MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Follow")))
                 newTarget = Core.Player.CurrentTarget;
-            else
-            {
-                if (targetTanks.Count() > 0 &&
-                    MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
-                    newTarget = targetTanks.First();
-            }
+            else if (targetTanks.Any() &&
+                     MudAssist.MovementModes[MudSettings.Instance.TargetingMode].Equals("Tank"))
+                newTarget = targetTanks.First();
 
             if (_moveTarget == newTarget) return _moveTarget;
             var oldTarget = _moveTarget;

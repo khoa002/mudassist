@@ -1,4 +1,8 @@
 # Change Log
+- `2.1.7`
+  - Added language support for CN users, the two version is separated
+  - Reverted some changes to TreeTick to fix a nasty bug than make the player don't do anything
+  - Minor fixes
 - `2.1.6`
   - Work with 4.2 patch
   - Reverted two changes to WaypointManager
