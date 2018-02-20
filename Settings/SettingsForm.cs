@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media;
@@ -15,7 +15,7 @@ namespace Mud.Settings
 {
     public sealed partial class SettingsForm : Form
     {
-        private static int __seconds;
+        private static int _seconds;
         private static SettingsForm _instance;
         private Timer _t;
 
