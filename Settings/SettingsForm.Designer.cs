@@ -1865,6 +1865,7 @@ namespace Mud.Settings
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Tag = "";
             this.Text = "Settings";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MudSettingsForm_Closing);
             this.Load += new System.EventHandler(this.MudSettingsForm_Load);
             this.stpStatus.ResumeLayout(false);
             this.stpStatus.PerformLayout();

@@ -1,4 +1,7 @@
 # Change Log
+- `2.1.9`
+  - Fixed (again) a problem with targetting...
+  - Minor fixes
 - `2.1.8`
   - Fixed crash at start
 - `2.1.7`

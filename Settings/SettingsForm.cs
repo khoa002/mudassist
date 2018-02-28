@@ -238,7 +238,7 @@ namespace Mud.Settings
                 }
 
                 _instance.tspFollowModeStatus.Text =
-                    @"M: " + MudAssist.MovementModes[MudSettings.Instance.TargetingMode].ToUpper();
+                    @"M: " + MudAssist.MovementModes[MudSettings.Instance.MovementMode].ToUpper();
                 _instance.tspTargetModeStatus.Text =
                     @"T: " + MudAssist.TargetingModes[MudSettings.Instance.TargetingMode].ToUpper();
             }
