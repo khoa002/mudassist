@@ -1,4 +1,6 @@
 # Change Log
+- `2.2.0`
+  - Fixed a VERY OLD problem with movements
 - `2.1.9`
   - Fixed (again) a problem with targetting...
   - Minor fixes

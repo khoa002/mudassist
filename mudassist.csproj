@@ -202,24 +202,6 @@
   <ItemGroup>
     <None Include="Resources\ERROR.png" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ICE.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\LIGHTNING.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\WATER.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\WIND.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\EARTH.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\FIRE.png" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

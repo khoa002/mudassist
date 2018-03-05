@@ -26,7 +26,7 @@ namespace Mud
 {
     public class MudAssist : BotBase
     {
-        internal const string Version = "2.1.9", Beta = "BETA", BetaVer = "1";
+        internal const string Version = "2.2.0", Beta = "BETA", BetaVer = "1";
         internal const bool IsBeta = false;
         private static string _lastTargetName;
 

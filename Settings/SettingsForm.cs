@@ -213,35 +213,33 @@ namespace Mud.Settings
 
         public static void UpdateStatus()
         {
-            if (_instance != null)
+            if (_instance == null) return;
+            if (MudSettings.Instance.Paused)
             {
-                if (MudSettings.Instance.Paused)
-                {
-                    _instance.tspPauseStatus.Text = @"STOPPED";
-                    _instance.tspPauseStatus.ForeColor = Color.Red;
-                }
-                else
-                {
-                    _instance.tspPauseStatus.Text = @"RUNNING";
-                    _instance.tspPauseStatus.ForeColor = Color.Green;
-                }
-
-                if (MudSettings.Instance.AutoMove)
-                {
-                    _instance.tspMovementStatus.Text = @"+AMOVE";
-                    _instance.tspMovementStatus.ForeColor = Color.DodgerBlue;
-                }
-                else
-                {
-                    _instance.tspMovementStatus.Text = @"-AMOVE";
-                    _instance.tspMovementStatus.ForeColor = Color.RoyalBlue;
-                }
-
-                _instance.tspFollowModeStatus.Text =
-                    @"M: " + MudAssist.MovementModes[MudSettings.Instance.MovementMode].ToUpper();
-                _instance.tspTargetModeStatus.Text =
-                    @"T: " + MudAssist.TargetingModes[MudSettings.Instance.TargetingMode].ToUpper();
+                _instance.tspPauseStatus.Text = @"STOPPED";
+                _instance.tspPauseStatus.ForeColor = Color.Red;
             }
+            else
+            {
+                _instance.tspPauseStatus.Text = @"RUNNING";
+                _instance.tspPauseStatus.ForeColor = Color.Green;
+            }
+
+            if (MudSettings.Instance.AutoMove)
+            {
+                _instance.tspMovementStatus.Text = @"+AMOVE";
+                _instance.tspMovementStatus.ForeColor = Color.DodgerBlue;
+            }
+            else
+            {
+                _instance.tspMovementStatus.Text = @"-AMOVE";
+                _instance.tspMovementStatus.ForeColor = Color.RoyalBlue;
+            }
+
+            _instance.tspFollowModeStatus.Text =
+                @"M: " + MudAssist.MovementModes[MudSettings.Instance.MovementMode].ToUpper();
+            _instance.tspTargetModeStatus.Text =
+                @"T: " + MudAssist.TargetingModes[MudSettings.Instance.TargetingMode].ToUpper();
         }
 
         private void LoadCharInfo()
