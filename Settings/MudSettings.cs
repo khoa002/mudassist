@@ -14,7 +14,7 @@ namespace Mud.Settings
         {
         }
 
-        public static MudSettings Instance => _settings ?? (_settings = new MudSettings("MudAssist"));
+        [JsonIgnore] public static MudSettings Instance => _settings ?? (_settings = new MudSettings("MudAssist"));
 
         #region Char Info
 
@@ -48,7 +48,7 @@ namespace Mud.Settings
 
         #endregion Char Info
 
-        #region Questing
+        #region Questing/Dungeon
 
         private bool _acceptQuests;
 
@@ -67,7 +67,7 @@ namespace Mud.Settings
         private bool _completeQuests;
 
         [JsonProperty("CompleteQuests")]
-        [DefaultValue(true)]
+        [DefaultValue(false)]
         public bool CompleteQuests
         {
             get => _completeQuests;
@@ -106,7 +106,35 @@ namespace Mud.Settings
             }
         }
 
-        #endregion Questing
+        private bool _autoCommenceDuty;
+
+        [JsonProperty("AutoCommenceDuty")]
+        [DefaultValue(false)]
+        public bool AutoCommenceDuty
+        {
+            get => _autoCommenceDuty;
+            set
+            {
+                _autoCommenceDuty = value;
+                Save();
+            }
+        }
+
+        private int _autoCommenceDutyDelay;
+
+        [JsonProperty("AutoCommenceDutyDelay")]
+        [DefaultValue(19)]
+        public int AutoCommenceDutyDelay
+        {
+            get => _autoCommenceDutyDelay;
+            set
+            {
+                _autoCommenceDutyDelay = value;
+                Save();
+            }
+        }
+
+        #endregion Questing/Dungeon
 
         #region Sprint
 

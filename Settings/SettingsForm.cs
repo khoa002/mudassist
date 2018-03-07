@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media;
 using ff14bot;
@@ -10,16 +11,20 @@ using Mud.Helpers;
 using Mud.Properties;
 using Color = System.Drawing.Color;
 
-namespace Mud.Settings.Forms
+namespace Mud.Settings
 {
-    public partial class SettingsForm : Form
+    public sealed partial class SettingsForm : Form
     {
-        private const int Seconds = 0;
+        private static int _seconds;
         private static SettingsForm _instance;
         private Timer _t;
 
         public SettingsForm()
         {
+            _instance = this;
+            SetStyle(ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.ResizeRedraw, true);
+            DoubleBuffered = true;
             InitializeComponent();
             ReloadSettings();
             InitializeDataBindings();
@@ -30,42 +35,51 @@ namespace Mud.Settings.Forms
         {
             _t = new Timer {Interval = 1000};
             _t.Tick += OnTickTimer;
-            try
+            if (!CommonBehaviors.IsLoading || _t.Enabled)
             {
-                if (!CommonBehaviors.IsLoading)
-                {
-                    if (!_t.Enabled) _t.Enabled = true;
-                    _t.Start();
-                }
-            }
-            catch (Exception ex)
-            {
-                Logging.Write(Colors.Brown, $@"{ex}");
+                _t.Start();
+                LoadCharInfo();
             }
 
             TopMost = MudSettings.Instance.AlwaysOnTop;
-
-            if (MudAssist.IsBeta)
-                Text = $@"Mud Assist v{MudAssist.Version} {MudAssist.Beta}-{MudAssist.BetaVer} - Settings";
-            Text = $@"Mud Assist v{MudAssist.Version} - Settings";
-
-            if (!CommonBehaviors.IsLoading) LoadCharInfo();
+            Text = MudAssist.IsBeta
+                ? $@"Mud Assist v{MudAssist.Version} {MudAssist.Beta}-{MudAssist.BetaVer} - Settings"
+                : $@"Mud Assist v{MudAssist.Version} - Settings";
             UpdateCheckBoxes(null);
             UpdateStatus();
+        }
+
+        private async void MudSettingsForm_Closing(object sender, FormClosingEventArgs e)
+        {
+            await ShutdownAsync();
+        }
+
+        internal async Task ShutdownAsync()
+        {
+            BeginInvoke(new Action(Close));
         }
 
         #region Misc Events
 
         private void OnTickTimer(object sender, EventArgs e)
         {
-            if (!MudAssist.IsStarted || CommonBehaviors.IsLoading) return;
-            if (Seconds >= 1 && Seconds <= 10)
+            try
             {
-                _t.Interval = Seconds * 1000;
-                LoadCharInfo();
+                if (CommonBehaviors.IsLoading) return;
+                if (_seconds >= 1 && _seconds <= 10)
+                {
+                    _t.Interval = _seconds * 1000;
+                    LoadCharInfo();
+                }
+                else
+                {
+                    _t.Interval = 1000;
+                }
             }
-
-            _t.Interval = 1000;
+            catch (Exception ex)
+            {
+                Logging.Write(Colors.Red, $@"{ex}");
+            }
         }
 
         #endregion Misc Events
@@ -190,39 +204,42 @@ namespace Mud.Settings.Forms
                 false, DataSourceUpdateMode.OnPropertyChanged);
             cbxAutoSkipCutscenes.DataBindings.Add("Checked", MudSettings.Instance, "SkipCutscenes",
                 false, DataSourceUpdateMode.OnPropertyChanged);
+            cbxAutoCommenceDuty.DataBindings.Add("Checked", MudSettings.Instance, "AutoCommenceDuty",
+                false, DataSourceUpdateMode.OnPropertyChanged);
+            cmbSecondsBeforeAccept.DataSource = MudAssist.SecondsBeforeAccept;
+            cmbSecondsBeforeAccept.DataBindings.Add("SelectedIndex", MudSettings.Instance, "AutoCommenceDutyDelay",
+                false, DataSourceUpdateMode.OnPropertyChanged);
         }
 
         public static void UpdateStatus()
         {
-            if (_instance != null)
+            if (_instance == null) return;
+            if (MudSettings.Instance.Paused)
             {
-                if (MudSettings.Instance.Paused)
-                {
-                    _instance.tspPauseStatus.Text = @"STOPPED";
-                    _instance.tspPauseStatus.ForeColor = Color.Red;
-                }
-                else
-                {
-                    _instance.tspPauseStatus.Text = @"RUNNING";
-                    _instance.tspPauseStatus.ForeColor = Color.Green;
-                }
-
-                if (MudSettings.Instance.AutoMove)
-                {
-                    _instance.tspMovementStatus.Text = @"+AMOVE";
-                    _instance.tspMovementStatus.ForeColor = Color.Cyan;
-                }
-                else
-                {
-                    _instance.tspMovementStatus.Text = @"-AMOVE";
-                    _instance.tspMovementStatus.ForeColor = Color.RoyalBlue;
-                }
-
-                _instance.tspFollowModeStatus.Text =
-                    @"M: " + MudAssist.MovementModes[MudSettings.Instance.TargetingMode].ToUpper();
-                _instance.tspTargetModeStatus.Text =
-                    @"T: " + MudAssist.TargetingModes[MudSettings.Instance.TargetingMode].ToUpper();
+                _instance.tspPauseStatus.Text = @"STOPPED";
+                _instance.tspPauseStatus.ForeColor = Color.Red;
             }
+            else
+            {
+                _instance.tspPauseStatus.Text = @"RUNNING";
+                _instance.tspPauseStatus.ForeColor = Color.Green;
+            }
+
+            if (MudSettings.Instance.AutoMove)
+            {
+                _instance.tspMovementStatus.Text = @"+AMOVE";
+                _instance.tspMovementStatus.ForeColor = Color.DodgerBlue;
+            }
+            else
+            {
+                _instance.tspMovementStatus.Text = @"-AMOVE";
+                _instance.tspMovementStatus.ForeColor = Color.RoyalBlue;
+            }
+
+            _instance.tspFollowModeStatus.Text =
+                @"M: " + MudAssist.MovementModes[MudSettings.Instance.MovementMode].ToUpper();
+            _instance.tspTargetModeStatus.Text =
+                @"T: " + MudAssist.TargetingModes[MudSettings.Instance.TargetingMode].ToUpper();
         }
 
         private void LoadCharInfo()
@@ -244,13 +261,6 @@ namespace Mud.Settings.Forms
             tbxCharIntelligence.Text = $@"INT : {JobHelper.Int}";
             tbxCharMind.Text = $@"MND : {JobHelper.Mnd}";
 
-            tbxCharFireResistance.Text = $@"{JobHelper.Fire}";
-            tbxCharIceResistance.Text = $@"{JobHelper.Ice}";
-            tbxCharWindResistance.Text = $@"{JobHelper.Wind}";
-            tbxCharEarthResistance.Text = $@"{JobHelper.Earth}";
-            tbxCharLightningResistance.Text = $@"{JobHelper.Lightining}";
-            tbxCharWaterResistance.Text = $@"{JobHelper.Water}";
-
             tbxCharCriticalHit.Text = $@"CRIT : {JobHelper.Crit}";
             tbxCharDirectHit.Text = $@"DHIT : {JobHelper.Dhit}";
             tbxCharDefense.Text = $@"DEF : {JobHelper.Def}";
@@ -263,7 +273,7 @@ namespace Mud.Settings.Forms
 
             #region Job Icons & Check Stats
 
-            switch (Core.Player.CurrentJob)
+            switch (Core.Me.CurrentJob)
             {
                 case ClassJobType.Adventurer:
                     ptbCharJobIcon.Image = Resources.ERROR;
@@ -414,7 +424,7 @@ namespace Mud.Settings.Forms
                     break;
             }
 
-            if (JobHelper.IsDoH(Core.Player))
+            if (JobHelper.IsDoH(Core.Me))
             {
                 lblCharMP_CP_GP.Text = @"CP";
                 tbxCharMP_CP_GP.Text = $@"{JobHelper.Curcp}/{JobHelper.Maxcp}";
@@ -426,7 +436,7 @@ namespace Mud.Settings.Forms
                 tbxCharSpellSpeed.Visible = false;
                 gbxCharExtra.Visible = false;
             }
-            else if (JobHelper.IsDoL(Core.Player))
+            else if (JobHelper.IsDoL(Core.Me))
             {
                 lblCharMP_CP_GP.Text = @"GP";
                 tbxCharMP_CP_GP.Text = $@"{JobHelper.Curgp}/{JobHelper.Maxgp}";
@@ -454,7 +464,7 @@ namespace Mud.Settings.Forms
                 tbxCharPiety.Text = $@"PTY : {JobHelper.Pty}";
             }
 
-            switch (Core.Player.GrandCompany)
+            switch (Core.Me.GrandCompany)
             {
                 case GrandCompany.Twin_Adder:
                     ptbCharGrandCompany.Image = Resources.order_of_the_twin_adder;
@@ -472,7 +482,7 @@ namespace Mud.Settings.Forms
                     break;
 
                 default:
-                    tbxCharGrandCompany.Text = Core.Player.GrandCompany.ToString();
+                    tbxCharGrandCompany.Text = Core.Me.GrandCompany.ToString();
                     ptbCharGrandCompany.Image = Resources.ERROR;
                     break;
             }
@@ -552,6 +562,12 @@ namespace Mud.Settings.Forms
         private void OnCheckedHideCharName(object sender, EventArgs e)
         {
             tbxCharName.UseSystemPasswordChar = cbxCharHideName.Checked;
+        }
+
+        private void OnCheckedAlwaysOnTop(object sender, EventArgs e)
+        {
+            TopMost = !TopMost;
+            MudSettings.Instance.AlwaysOnTop = cbxAlwaysOnTop.Checked;
         }
 
         #endregion CheckBox Events
